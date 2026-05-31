@@ -1,0 +1,158 @@
+<svg viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+  <rect width="1200" height="900" fill="#fdf6ee"/>
+
+  <!-- title -->
+  <text x="600" y="46" text-anchor="middle" font-size="23" fill="#2d2420">The tree, fully labeled</text>
+  <text x="600" y="70" text-anchor="middle" font-size="12.5" fill="#a09080" font-style="italic">the form is the means · the medium is the end · concept card for M8 (labels resolve in here)</text>
+
+  <!-- ===================== HERO TREE (elevation) ===================== -->
+
+  <!-- air + light -->
+  <g>
+    <circle cx="690" cy="150" r="20" fill="none" stroke="#c4a882" stroke-width="1.3"/>
+    <g stroke="#c4a882" stroke-width="1.3">
+      <line x1="690" y1="116" x2="690" y2="126"/><line x1="690" y1="174" x2="690" y2="184"/>
+      <line x1="656" y1="150" x2="666" y2="150"/><line x1="714" y1="150" x2="724" y2="150"/>
+      <line x1="667" y1="127" x2="674" y2="134"/><line x1="706" y1="166" x2="713" y2="173"/>
+      <line x1="667" y1="173" x2="674" y2="166"/><line x1="706" y1="134" x2="713" y2="127"/>
+    </g>
+  </g>
+
+  <!-- canopy -->
+  <path d="M 480 150 C 380 150, 345 245, 400 280 C 350 312, 392 372, 460 356
+           C 478 392, 522 392, 540 356 C 612 372, 656 308, 602 278
+           C 656 245, 620 150, 520 152 C 510 132, 490 132, 480 150 Z"
+        fill="#ecd9bf" stroke="#c4a882" stroke-width="1.6"/>
+  <!-- a few leaves suggestion -->
+  <g fill="#c4a882" opacity="0.55">
+    <ellipse cx="430" cy="240" rx="13" ry="7" transform="rotate(-25 430 240)"/>
+    <ellipse cx="560" cy="225" rx="13" ry="7" transform="rotate(20 560 225)"/>
+    <ellipse cx="500" cy="320" rx="13" ry="7" transform="rotate(-10 500 320)"/>
+  </g>
+  <!-- fruit in canopy -->
+  <circle cx="455" cy="300" r="7" fill="#b8553c"/>
+  <circle cx="545" cy="285" r="7" fill="#b8553c"/>
+  <circle cx="505" cy="245" r="7" fill="#b8553c"/>
+
+  <!-- falling fruit -->
+  <circle cx="560" cy="470" r="7" fill="#b8553c" opacity="0.9"/>
+  <path d="M 552 392 q 12 40, 6 70" fill="none" stroke="#d8b8a0" stroke-width="1" stroke-dasharray="2,4"/>
+
+  <!-- trunk (driest, least alive) -->
+  <path d="M 487 356 C 483 430, 481 500, 477 556 L 533 556 C 529 500, 527 430, 523 356 Z"
+        fill="#8a6a48" stroke="#6f5436" stroke-width="1.5"/>
+  <g stroke="#6f5436" stroke-width="0.8" opacity="0.6">
+    <path d="M 498 366 C 496 430, 495 500, 493 552" fill="none"/>
+    <path d="M 512 366 C 513 430, 514 500, 515 552" fill="none"/>
+  </g>
+
+  <!-- soil band -->
+  <rect x="330" y="556" width="380" height="92" fill="#dde3d0" stroke="#b8c4a8" stroke-width="1.5"/>
+  <g stroke="#b8c4a8" stroke-width="0.7" opacity="0.6">
+    <line x1="360" y1="576" x2="392" y2="576"/><line x1="430" y1="592" x2="470" y2="592"/>
+    <line x1="540" y1="580" x2="585" y2="580"/><line x1="610" y1="600" x2="650" y2="600"/>
+  </g>
+
+  <!-- roots -->
+  <g fill="none" stroke="#6f5436" stroke-width="1.5">
+    <path d="M 487 556 C 460 586, 415 600, 380 632"/>
+    <path d="M 500 556 C 492 590, 488 612, 484 640"/>
+    <path d="M 512 556 C 520 586, 525 604, 522 636"/>
+    <path d="M 478 556 C 448 580, 410 592, 372 606"/>
+    <path d="M 523 556 C 556 584, 600 596, 640 622"/>
+  </g>
+
+  <!-- ===================== LABELS (leader lines + text) ===================== -->
+  <!-- left labels -->
+  <g stroke="#c4a882" stroke-width="1">
+    <line x1="690" y1="150" x2="770" y2="150"/>            <!-- air -->
+    <line x1="412" y1="250" x2="250" y2="250"/>            <!-- canopy -->
+    <line x1="455" y1="300" x2="250" y2="330"/>            <!-- leaves&fruit -->
+  </g>
+  <text x="778" y="146" font-size="12.5" fill="#6a7a52">AIR + LIGHT</text>
+  <text x="778" y="162" font-size="10.5" fill="#a09080" font-style="italic">the medium, above (relationship)</text>
+
+  <text x="246" y="240" text-anchor="end" font-size="12.5" fill="#8a6a44">CANOPY — what we make together</text>
+  <text x="246" y="256" text-anchor="end" font-size="10.5" fill="#a09080" font-style="italic">co-construction · community of practice</text>
+  <text x="246" y="270" text-anchor="end" font-size="10" fill="#6a7a52">diverge (many, again)</text>
+
+  <text x="246" y="326" text-anchor="end" font-size="12.5" fill="#8a6a44">LEAVES &amp; FRUIT — what comes of it</text>
+  <text x="246" y="342" text-anchor="end" font-size="10.5" fill="#a09080" font-style="italic">meaning made after the scaffold</text>
+
+  <!-- right labels -->
+  <g stroke="#c4a882" stroke-width="1">
+    <line x1="525" y1="456" x2="690" y2="456"/>            <!-- trunk -->
+    <line x1="567" y1="470" x2="690" y2="520"/>            <!-- falling fruit -->
+    <line x1="600" y1="600" x2="700" y2="600"/>            <!-- soil -->
+    <line x1="600" y1="624" x2="700" y2="660"/>            <!-- roots -->
+  </g>
+  <text x="698" y="446" font-size="12.5" fill="#8a6a44">TRUNK — the shared objective, the scaffold</text>
+  <text x="698" y="462" font-size="10.5" fill="#a09080" font-style="italic">the form · converge (the one)</text>
+  <text x="698" y="476" font-size="10.5" fill="#9a7850">bark: necessary, least alive, sealed off</text>
+
+  <text x="698" y="516" font-size="12.5" fill="#8a6a44">…and it returns</text>
+  <text x="698" y="532" font-size="10.5" fill="#a09080" font-style="italic">the fruit falls back into the soil and re-seeds —</text>
+  <text x="698" y="546" font-size="10.5" fill="#a09080" font-style="italic">this tree's fruit starts the next (knowledge builds on knowledge)</text>
+
+  <text x="708" y="596" font-size="12.5" fill="#6a7a52">SOIL — the medium (humanity)</text>
+  <text x="708" y="612" font-size="10.5" fill="#a09080" font-style="italic">named only at the very end</text>
+
+  <text x="708" y="658" font-size="12.5" fill="#8a6a44">ROOTS — where we each begin</text>
+  <text x="708" y="674" font-size="10.5" fill="#a09080" font-style="italic">our own twisted experience · diverge (many)</text>
+
+  <!-- ===================== converge/diverge spine (far left) ===================== -->
+  <g>
+    <text x="120" y="430" text-anchor="middle" font-size="10" letter-spacing="0.12em" fill="#9a7850">THE BREATHING</text>
+    <line x1="120" y1="446" x2="120" y2="640" stroke="#c4a882" stroke-width="1"/>
+    <circle cx="120" cy="640" r="3" fill="#6a7a52"/><text x="134" y="644" font-size="10" fill="#6a5a4e">roots — diverge</text>
+    <circle cx="120" cy="592" r="3" fill="#9a7850"/><text x="134" y="596" font-size="10" fill="#6a5a4e">trunk — converge</text>
+    <circle cx="120" cy="520" r="3" fill="#6a7a52"/><text x="134" y="524" font-size="10" fill="#6a5a4e">canopy — diverge</text>
+    <circle cx="120" cy="460" r="3" fill="#b8553c"/><text x="134" y="464" font-size="10" fill="#6a5a4e">fruit — re-seed</text>
+  </g>
+
+  <!-- ===================== overhead-rings inset (top right) ===================== -->
+  <g>
+    <text x="1035" y="120" text-anchor="middle" font-size="10" letter-spacing="0.12em" fill="#9a7850">THE SAME TREE, FROM ABOVE</text>
+    <circle cx="1035" cy="205" r="74" fill="#dde3d0" stroke="#b8c4a8" stroke-width="1.3"/>
+    <circle cx="1035" cy="205" r="50" fill="#ecd9bf" stroke="#c4a882" stroke-width="1.3"/>
+    <circle cx="1035" cy="205" r="25" fill="#8a6a48" stroke="#6f5436" stroke-width="1.3"/>
+    <circle cx="1035" cy="205" r="4" fill="#2d2420"/>
+    <text x="1035" y="208" text-anchor="middle" font-size="8" fill="#fdf6ee">forms</text>
+    <text x="1035" y="165" text-anchor="middle" font-size="8.5" fill="#8a6a44">learning</text>
+    <text x="1035" y="140" text-anchor="middle" font-size="8.5" fill="#6a7a52">relationship</text>
+    <text x="1035" y="300" text-anchor="middle" font-size="9.5" fill="#a09080" font-style="italic">M1 shows this, cold + unlabeled.</text>
+    <text x="1035" y="314" text-anchor="middle" font-size="9.5" fill="#a09080" font-style="italic">M8 tips it into the tree.</text>
+  </g>
+
+  <!-- ===================== OVERLAY STRIP (bottom) ===================== -->
+  <line x1="80" y1="712" x2="1120" y2="712" stroke="#e8ddd0" stroke-width="1"/>
+  <text x="80" y="738" font-size="11" letter-spacing="0.1em" fill="#9a7850">OPTIONAL OVERLAY — the same tree, different camps zoomed in</text>
+  <text x="80" y="754" font-size="10.5" fill="#a09080" font-style="italic">a side path someone can choose, never the spine. each camp is missing part of the same tree.</text>
+
+  <!-- variant 1: ITS narrow trunk -->
+  <g>
+    <path d="M 175 860 L 183 786 L 197 786 L 205 860 Z" fill="#8a6a48" stroke="#6f5436" stroke-width="1.2"/>
+    <ellipse cx="190" cy="784" rx="26" ry="16" fill="#ecd9bf" stroke="#c4a882" stroke-width="1.2"/>
+    <text x="250" y="800" font-size="11.5" fill="#8a6a44">One-on-one ITS</text>
+    <text x="250" y="815" font-size="10" fill="#a09080" font-style="italic">a narrow trunk (a tube). fast to</text>
+    <text x="250" y="828" font-size="10" fill="#a09080" font-style="italic">the objective. all trunk, little canopy.</text>
+  </g>
+
+  <!-- variant 2: classroom wider funnel -->
+  <g>
+    <path d="M 470 860 L 482 800 L 430 778 L 552 778 L 500 800 L 512 860 Z" fill="#8a6a48" stroke="#6f5436" stroke-width="1.2"/>
+    <text x="575" y="800" font-size="11.5" fill="#8a6a44">Classroom</text>
+    <text x="575" y="815" font-size="10" fill="#a09080" font-style="italic">a wider funnel: many students</text>
+    <text x="575" y="828" font-size="10" fill="#a09080" font-style="italic">converged into one objective.</text>
+  </g>
+
+  <!-- variant 3: community of practice open ring -->
+  <g>
+    <circle cx="880" cy="810" r="30" fill="none" stroke="#6a7a52" stroke-width="1.5" stroke-dasharray="5,4"/>
+    <circle cx="862" cy="804" r="3.5" fill="#c4a882"/><circle cx="896" cy="800" r="3.5" fill="#c4a882"/>
+    <circle cx="888" cy="824" r="3.5" fill="#c4a882"/><circle cx="868" cy="822" r="3.5" fill="#c4a882"/>
+    <text x="930" y="800" font-size="11.5" fill="#8a6a44">Community of practice</text>
+    <text x="930" y="815" font-size="10" fill="#a09080" font-style="italic">an open space (the ring). sits at any</text>
+    <text x="930" y="828" font-size="10" fill="#a09080" font-style="italic">height — around the trunk, or up as the canopy.</text>
+  </g>
+</svg>

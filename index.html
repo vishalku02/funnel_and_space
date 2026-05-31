@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What is education for?</title>
+<style>
+  :root {
+    --page: #f8f8f5;
+    --page-edge: #ece9e1;
+    --page-edge-deep: #e0ddd3;
+    --ink: #1f1d1a;
+    --bark: #6b5d4f;
+    --pencil: #9a948a;
+    --pencil-faint: #b8b2a8;
+    --sage: #5f7355;
+    --fruit: #9c3b2e;
+    --rule: #ddd8cd;
+
+    --desk-light: #34362f;
+    --desk-dark: #21221c;
+
+    --cold-bg: #e8eae7;
+    --cold-text: #515b57;
+    --cold-mid: #7d8a86;
+    --cold-rule: #c8cdc8;
+    --cold-drained: #86807a;
+
+    --graphite: #46423c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--desk-dark);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    line-height: 1.65;
+  }
+
+  #desk {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 50% 42%, var(--desk-light) 0%, var(--desk-dark) 78%);
+    transition: background 0.45s ease;
+  }
+
+  .book {
+    position: relative;
+    width: min(92vw, 600px);
+    height: min(88vh, 784px);
+    perspective: 2200px;
+    filter: drop-shadow(0 20px 44px rgba(0,0,0,0.5));
+  }
+  .book::after,
+  .book::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 2px;
+    z-index: -1;
+  }
+  .book::after { transform: translate(6px, 8px); background: var(--page-edge); z-index: -1; }
+  .book::before { transform: translate(11px, 15px); background: var(--page-edge-deep); z-index: -2; }
+
+  .page {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    background: var(--page);
+    border-radius: 2px;
+    transform-origin: left center;
+    backface-visibility: hidden;
+    overflow: hidden;
+  }
+  .page.active { display: flex; z-index: 2; }
+  .page.below  { display: flex; z-index: 1; }
+  .page.turning { z-index: 3; animation: turn-forward 0.9s ease-in forwards; }
+
+  @keyframes turn-forward {
+    0%   { transform: rotateY(0deg);    box-shadow: 0 0 0 rgba(0,0,0,0); }
+    100% { transform: rotateY(-168deg); box-shadow: 26px 0 66px rgba(0,0,0,0.28); }
+  }
+
+  .page-inner {
+    flex: 1;
+    overflow-y: auto;
+    padding: 58px 58px 30px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pencil-faint) transparent;
+  }
+  .page-inner::-webkit-scrollbar { width: 6px; }
+  .page-inner::-webkit-scrollbar-thumb { background: var(--pencil-faint); border-radius: 3px; }
+
+  .folio {
+    flex: 0 0 auto;
+    text-align: center;
+    padding-bottom: 20px;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--pencil);
+    letter-spacing: 0.08em;
+  }
+  .page[data-folio] .folio::before { content: '· ' attr(data-folio) ' ·'; }
+
+  p { margin: 0 0 1.1em; }
+  .lede { margin-bottom: 1.5em; }
+
+  .question {
+    font-size: 29px;
+    line-height: 1.42;
+    margin: 0 0 0.8em;
+  }
+
+  .hint {
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pencil);
+    margin-top: 0.4em;
+  }
+
+  .stage-instruction { font-style: italic; color: var(--bark); margin-top: 1.6em; }
+  .quiet-note { font-size: 16px; color: var(--bark); }
+
+  input[type="text"],
+  textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--bark);
+    color: var(--ink);
+    font-family: Georgia, serif;
+    font-size: 20px;
+    line-height: 1.5;
+    padding: 8px 2px;
+    resize: none;
+  }
+  input[type="text"]:focus,
+  textarea:focus { outline: none; border-bottom-color: var(--sage); }
+  textarea { min-height: 2.6em; }
+
+  .actions { margin-top: 1.8em; display: flex; gap: 16px; align-items: center; }
+
+  button {
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--bark);
+    border-radius: 2px;
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+  button:hover { background: #efeee7; border-color: var(--sage); }
+  button.quiet { border-color: transparent; color: var(--pencil); }
+  button.quiet:hover { background: transparent; color: var(--bark); }
+  button.tiny {
+    border: none;
+    padding: 4px 2px;
+    font-size: 10px;
+    color: var(--pencil);
+    letter-spacing: 0.12em;
+  }
+  button.tiny:hover { background: transparent; color: var(--bark); }
+
+  .placeholder {
+    border: 1px dashed var(--pencil-faint);
+    border-radius: 3px;
+    color: var(--pencil);
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 38px 16px;
+    margin: 1.4em 0;
+  }
+  .placeholder.tall { padding: 64px 16px; }
+
+  .margin-glint {
+    font-family: Georgia, serif;
+    font-size: 12.5px;
+    font-style: italic;
+    color: var(--pencil);
+    border-left: 1px solid var(--rule);
+    padding-left: 12px;
+    margin-top: 2.4em;
+  }
+
+  .support-list { list-style: none; padding: 0; margin: 0.4em 0 1.6em; }
+  .support-list li { margin: 0.6em 0; }
+  .support-list label { cursor: pointer; display: flex; gap: 12px; align-items: baseline; }
+  .support-list input { accent-color: var(--sage); margin-top: 2px; }
+
+  .checklist { list-style: none; padding: 0; margin: 0.6em 0 1.2em; }
+  .checklist li { display: flex; gap: 12px; align-items: baseline; margin: 0.55em 0; }
+  .box {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    border: 1.5px solid var(--bark);
+    border-radius: 2px;
+    position: relative;
+    top: 3px;
+  }
+  .box.checked { background: var(--sage); border-color: var(--sage); }
+  .box.checked::after {
+    content: '✓';
+    position: absolute;
+    inset: -3px 0 0 1px;
+    color: var(--page);
+    font-size: 12px;
+    line-height: 1;
+  }
+  .checklist li.empty span:last-child { color: var(--bark); }
+
+  .consent-row { display: flex; flex-direction: column; gap: 6px; margin: 1.4em 0; }
+  .consent-row label { font-style: italic; color: var(--bark); font-size: 16px; }
+
+  .recall-block { margin: 1.4em 0; }
+  .recall-label { color: var(--bark); font-style: italic; margin-bottom: 0.1em; }
+  .recall-answer {
+    font-size: 22px;
+    margin-bottom: 1.5em;
+    padding-left: 18px;
+    border-left: 2px solid var(--sage);
+  }
+  .recall-answer.empty { color: var(--pencil); font-style: italic; border-left-color: var(--rule); }
+  .recall-close { font-size: 22px; margin-top: 0.6em; }
+
+  .credit-card {
+    margin-top: 3em;
+    padding: 18px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--bark);
+  }
+
+  /* the doodle */
+  .doodle-wrap { margin: 1.2em 0 0.6em; max-width: 320px; }
+  #doodle-canvas {
+    width: 100%;
+    height: 170px;
+    display: block;
+    background: #fcfcfa;
+    border: 1px solid #e6e0d4;
+    border-radius: 3px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .doodle-tools { display: flex; gap: 14px; margin-top: 6px; }
+  .doodle-settled {
+    max-width: 320px;
+    margin: 1.2em 0 0.6em;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--pencil);
+    font-style: italic;
+    font-size: 15px;
+  }
+  .doodle-settled .scrap { flex: 0 0 auto; }
+
+  #doodle-margin {
+    position: absolute;
+    top: 22px;
+    right: 18px;
+    width: 66px;
+    z-index: 5;
+    padding: 6px;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    transform: rotate(-4deg);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    display: none;
+  }
+  #doodle-margin svg, #doodle-margin img { display: block; width: 100%; height: auto; }
+
+  .board { display: flex; gap: 22px; align-items: flex-start; margin: 1.2em 0; flex-wrap: wrap; }
+  .board .placeholder { flex: 1 1 200px; margin: 0; }
+  .board-doodle {
+    flex: 0 0 auto;
+    width: 150px;
+    padding: 12px;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    transform: rotate(3deg);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+  }
+  .board-doodle svg, .board-doodle img { display: block; width: 100%; height: auto; }
+
+  /* cold system — M3 only: the same world drained of life */
+  .page.cold { background: var(--cold-bg); color: var(--cold-text); }
+  .page.cold .page-inner {
+    font-family: 'Courier New', Courier, monospace;
+    display: block;
+    padding: 40px 46px;
+  }
+  .page.cold .drained { color: var(--cold-drained); }
+  .page.cold button { color: var(--cold-text); border-color: var(--cold-rule); }
+  .page.cold button:hover { background: #dfe3e0; border-color: var(--cold-mid); }
+
+  .dash-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 1px solid var(--cold-rule);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+  }
+  .dash-brand { font-size: 15px; letter-spacing: 0.03em; }
+  .dash-brand b { letter-spacing: 0.06em; }
+  .dash-brand .ver { color: var(--cold-mid); font-size: 12px; }
+  .dash-meta { display: flex; gap: 18px; align-items: center; font-size: 12px; color: var(--cold-mid); flex-wrap: wrap; justify-content: flex-end; }
+  .dash-live { display: flex; gap: 7px; align-items: center; }
+  .dash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cold-mid); animation: dash-pulse 1.8s ease-in-out infinite; }
+  @keyframes dash-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+  .dash-body { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .dash-col { display: flex; flex-direction: column; gap: 18px; }
+
+  .dash-kpis { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .kpi { border: 1px solid var(--cold-rule); border-radius: 2px; padding: 11px 12px; }
+  .kpi .label { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cold-mid); }
+  .kpi .value { font-size: 21px; margin-top: 5px; line-height: 1.1; }
+  .kpi .sub { font-size: 11px; color: var(--cold-drained); margin-top: 3px; }
+  .kpi.flag .value { color: var(--cold-drained); }
+
+  .bar-label { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cold-mid); margin-bottom: 7px; }
+  .bar { height: 10px; background: #d8ddd9; border-radius: 2px; position: relative; }
+  .bar-fill { height: 100%; width: 41%; background: var(--cold-mid); border-radius: 2px 0 0 2px; }
+  .bar-target { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--cold-drained); }
+  .bar-note { font-size: 11px; color: var(--cold-mid); margin-top: 7px; display: flex; justify-content: space-between; }
+
+  .spark { border: 1px solid var(--cold-rule); border-radius: 2px; padding: 11px 12px; }
+  .spark svg { display: block; width: 100%; height: 42px; }
+
+  .panel { border: 1px solid var(--cold-rule); border-radius: 2px; padding: 13px 14px; }
+  .panel h4 { margin: 0 0 8px; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cold-mid); font-weight: normal; }
+  .panel p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+  .panel .quote { color: var(--cold-text); }
+  .panel .code { font-size: 13px; line-height: 1.7; }
+  .panel .comment { color: var(--cold-mid); }
+  .panel ul { margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.7; }
+  .panel .prob { font-size: 18px; margin: 2px 0 6px; }
+
+  .page.cold .actions { margin-top: 26px; }
+
+  @media (max-width: 640px) {
+    .dash-body { grid-template-columns: 1fr; }
+    .dash-kpis { grid-template-columns: 1fr 1fr; }
+  }
+
+  body.cold-mode #desk { background: var(--cold-bg); }
+  body.cold-mode .book { width: 100vw; height: 100vh; perspective: none; filter: none; }
+  body.cold-mode .book::after,
+  body.cold-mode .book::before { display: none; }
+  body.cold-mode .page.cold { border-radius: 0; }
+  body.cold-mode #doodle-margin { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page.turning { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div id="desk">
+  <div class="book" id="book">
+
+    <section class="page" data-screen="consent">
+      <div class="page-inner">
+        <p class="lede">One optional thing before we start.</p>
+        <p>I'm studying how people's view of education changes as they move through this. If you tell me what you do, I'll keep that along with the few lines you write here. No name. Nothing else.</p>
+        <p>You can skip this and everything works exactly the same. You can read the why at the end.</p>
+        <div class="consent-row">
+          <label for="profession">I do this:</label>
+          <input type="text" id="profession" autocomplete="off">
+        </div>
+        <div class="actions">
+          <button data-consent="yes" data-next>continue</button>
+          <button class="quiet" data-consent="no" data-next>skip</button>
+        </div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m1-far-question" data-folio="1">
+      <div class="page-inner">
+        <p class="question">What is education for?</p>
+        <div class="placeholder tall">rings go here</div>
+        <textarea data-capture="answer1" rows="2"></textarea>
+        <p class="hint">press enter when you're ready</p>
+        <div class="actions"><button data-next>continue</button></div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m2-meet-maya" data-folio="2">
+      <div class="page-inner">
+        <p>Meet Maya. She's ten.</p>
+        <p>She's a really hard worker. For three weeks she's been working through the same page in her homework on fractions.</p>
+        <p>She gets the first step right almost every time. But then she stops at the same place each time, just before the end. It's unfortunate, because lately in class she's stopped raising her hand.</p>
+        <p>In the corner of every worksheet, she draws.</p>
+        <p class="stage-instruction">Leave something in the corner with her.</p>
+        <div class="doodle-wrap" id="doodle-area">
+          <canvas id="doodle-canvas"></canvas>
+          <div class="doodle-tools">
+            <button class="tiny" data-clear-doodle>start over</button>
+            <button class="tiny" data-skip-doodle>skip</button>
+          </div>
+        </div>
+        <p class="question">What does Maya need right now?</p>
+        <textarea data-capture="answer2" rows="2"></textarea>
+        <div class="actions"><button data-next>continue</button></div>
+        <p class="margin-glint">"learnification" — Gert Biesta, on education shrinking until it means only "learning."</p>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page cold" data-screen="m3-system-view" data-folio="3">
+      <div class="page-inner">
+        <div class="dash-head">
+          <div class="dash-brand"><b>MathBuddy</b> <span class="ver">3.2</span></div>
+          <div class="dash-meta">
+            <span>Maya R. · Learner #4417 · Grade 5</span>
+            <span>Unit 4.3 — Equivalent Fractions</span>
+            <span>Session #12</span>
+            <span class="dash-live"><span class="dash-dot"></span>live · 4m 12s</span>
+          </div>
+        </div>
+
+        <div class="dash-body">
+          <div class="dash-col">
+            <div class="dash-kpis">
+              <div class="kpi"><div class="label">Mastery est.</div><div class="value">0.41</div><div class="sub">▼ below target</div></div>
+              <div class="kpi"><div class="label">Days on item</div><div class="value">19</div></div>
+              <div class="kpi"><div class="label">Hints</div><div class="value">37</div></div>
+              <div class="kpi"><div class="label">Attempts</div><div class="value">52</div></div>
+              <div class="kpi"><div class="label">Engagement</div><div class="value">LOW</div></div>
+              <div class="kpi flag"><div class="label">Off-task events</div><div class="value">14</div><div class="sub">flagged</div></div>
+            </div>
+
+            <div>
+              <div class="bar-label">Mastery toward target</div>
+              <div class="bar"><div class="bar-fill"></div><div class="bar-target"></div></div>
+              <div class="bar-note"><span>0.41 current</span><span>+0.39 to target (0.80)</span></div>
+            </div>
+
+            <div class="spark">
+              <div class="bar-label">Session accuracy, last 12</div>
+              <svg viewBox="0 0 220 42" fill="none" stroke="var(--cold-mid)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2,30 20,26 38,33 56,24 74,31 92,28 110,34 128,22 146,30 164,33 182,27 200,31 218,29"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="dash-col">
+            <div class="panel">
+              <h4>Learning objective</h4>
+              <p class="quote">"Identify equivalent fractions with ≥80% accuracy across 5 novel problems."</p>
+            </div>
+            <div class="panel">
+              <h4>Queued intervention</h4>
+              <p class="code">HINT_8 → "Multiply the top and bottom by the same number."<br><span class="comment">// triggered: mastery &lt; 0.40, time_on_task &gt; 4:00</span></p>
+            </div>
+            <div class="panel">
+              <h4>Recommended action</h4>
+              <ul>
+                <li>re-serve prerequisite 4.2</li>
+                <li>increase hint frequency</li>
+                <li>notify instructor dashboard</li>
+              </ul>
+            </div>
+            <div class="panel">
+              <h4>Next problem · ZPD-matched</h4>
+              <p class="prob">3/4 = ?/8</p>
+              <p class="comment">est. p(success) 0.38</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions"><button data-next>continue</button></div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m4a-support" data-folio="4">
+      <div class="page-inner">
+        <p>Maya uses a tutoring app at school. It watches how she does and changes the lessons to fit her.</p>
+        <p class="question">What support would you give her?</p>
+        <ul class="support-list">
+          <li><label><input type="checkbox" data-support="teacher-review">Have her teacher look over her progress each week</label></li>
+          <li><label><input type="checkbox" data-support="parent-report">Send her parents a weekly progress report</label></li>
+          <li><label><input type="checkbox" data-support="forum">Add a discussion forum to the app</label></li>
+          <li><label><input type="checkbox" data-support="human-tutor">Give her fifteen minutes with a human tutor each week</label></li>
+        </ul>
+        <div class="actions"><button data-next>continue</button></div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m4b-questions" data-folio="5">
+      <div class="page-inner">
+        <p>Before Maya's app existed, someone designed it. They started from a list of questions.</p>
+        <ul class="checklist">
+          <li><span class="box checked"></span><span>What should Maya master next?</span></li>
+          <li><span class="box checked"></span><span>How do we measure whether she can do it?</span></li>
+          <li><span class="box checked"></span><span>What is the right next problem for her level?</span></li>
+          <li><span class="box checked"></span><span>How do we know when she is ready to move on?</span></li>
+          <li><span class="box checked"></span><span>What counts as being good at fractions?</span></li>
+        </ul>
+        <p>Every kind of help you just gave answers one of these.</p>
+        <p>Someone else could have started from a different list.</p>
+        <ul class="checklist">
+          <li class="empty"><span class="box"></span><span>What is Maya working on, and who with?</span></li>
+          <li class="empty"><span class="box"></span><span>Who does she get to ask when she is stuck?</span></li>
+          <li class="empty"><span class="box"></span><span>What makes a room feel safe enough to be stuck in?</span></li>
+          <li class="empty"><span class="box"></span><span>Whose questions get asked? Whose do not?</span></li>
+          <li class="empty"><span class="box"></span><span>What might she care about that no one put on the worksheet?</span></li>
+        </ul>
+        <p>This second list was never filled in.</p>
+        <div class="actions"><button data-next>continue</button></div>
+        <p class="margin-glint">Bloom, 1984 — one child with one tutor outlearned the classroom by two standard deviations. The field has chased that number ever since.</p>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m4c-friends" data-folio="6">
+      <div class="page-inner">
+        <p>Maya uses the app at school. After school, she has a tutor too.</p>
+        <p>Most of her day is now one screen, or one grown-up, and one her.</p>
+        <p>She sits next to four friends in class. It's unfortunate, because lately she hasn't really talked to any of them.</p>
+        <p class="question">What does Maya need right now?</p>
+        <textarea data-capture="answer3" rows="2"></textarea>
+        <div class="actions"><button data-next>continue</button></div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m4d-tube" data-folio="7">
+      <div class="page-inner">
+        <p>Everyone gets their own path now.</p>
+        <p>They all end in the same place.</p>
+        <div class="placeholder tall">many personalized paths converging on one point — which becomes the top of the bare trunk</div>
+        <div class="actions"><button data-next>continue</button></div>
+        <p class="margin-glint">"The pathway may be personalized, but not the destination." — Holmes et al., 2022.</p>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m5-improves" data-folio="8">
+      <div class="page-inner">
+        <p>A few weeks later, Maya finished the page. Her scores went up. She moved on to the next one.</p>
+        <div class="placeholder tall">the trunk: tall, bare, dry</div>
+        <div class="actions"><button data-next>continue</button></div>
+        <p class="margin-glint">Biesta — if education is only preparation, are we teaching for a world that will still exist?</p>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m6-near-question" data-folio="9">
+      <div class="page-inner">
+        <p class="question">What does Maya need right now?</p>
+        <textarea data-capture="answer4" rows="2"></textarea>
+        <div class="actions"><button data-next>continue</button></div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m7-your-words" data-folio="10">
+      <div class="page-inner">
+        <div class="recall-block">
+          <p class="recall-label">When you met her, you wrote:</p>
+          <p class="recall-answer" data-recall="answer2"></p>
+          <p class="recall-label">After you saw who was around her:</p>
+          <p class="recall-answer" data-recall="answer3"></p>
+          <p class="recall-label">Just now:</p>
+          <p class="recall-answer" data-recall="answer4"></p>
+        </div>
+        <p class="recall-close">Your words.</p>
+        <div class="actions"><button data-next>continue</button></div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m8-tree" data-folio="11">
+      <div class="page-inner">
+        <div class="placeholder tall">tree goes here</div>
+        <p class="question">soil, air, light.</p>
+        <p>the things a tree can't grow without.</p>
+        <p>we never named them.<br>you might have, by now.</p>
+        <div class="actions"><button data-next>continue</button></div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="m9-board" data-folio="12">
+      <div class="page-inner">
+        <div class="board">
+          <div class="placeholder tall">tree goes here</div>
+          <div class="board-doodle" id="board-doodle"></div>
+        </div>
+        <p class="question">What is education for?</p>
+        <textarea data-capture="answer5" rows="2"></textarea>
+        <div class="actions"><button data-end>done</button></div>
+        <div class="credit-card">
+          Hi, I'm Vishal. I made this with my dear friend Yoyo as a project for Educ 432 (Explorable Explanations) and Stat 292 (Statistical Models of Language and Text) at Stanford.<br><br>
+          If you said yes to sharing your words and what you do, I'll use them to study how people's view of education shifts as the question moves from far away to up close, by looking at how the answers move in neural embedding space.<br><br>
+          Your responses are anonymous. You can change your mind: opt out.
+        </div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <section class="page" data-screen="end">
+      <div class="page-inner">
+        <p class="question">Thank you.</p>
+        <p>That's the end of the gray-box walk-through.</p>
+        <p class="hint" id="drift-summary"></p>
+        <div class="actions">
+          <button data-restart>read it again</button>
+          <button class="quiet" data-log>log session to console</button>
+        </div>
+      </div>
+      <div class="folio"></div>
+    </section>
+
+    <div id="doodle-margin" aria-hidden="true"></div>
+
+  </div>
+</div>
+
+<script>
+  const session = {
+    consent: null,
+    profession: '',
+    answer1: '',
+    answer2: '',
+    answer3: '',
+    answer4: '',
+    answer5: '',
+    support: [],
+    doodle: null,
+    startedAt: new Date().toISOString()
+  };
+  window.mayaSession = session;
+
+  const body = document.body;
+  const screens = Array.from(document.querySelectorAll('.page'));
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cornerDoodle = document.getElementById('doodle-margin');
+  const boardDoodle = document.getElementById('board-doodle');
+  const hideCornerOn = ['consent', 'm1-far-question', 'm2-meet-maya', 'm3-system-view', 'm9-board', 'end'];
+  let position = 0;
+  let turning = false;
+  let hasDrawn = false;
+  let canvasReady = false;
+
+  const horseMarkup = `<svg viewBox="0 0 130 100" fill="none" stroke="#46423c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 80 L30 52 C30 42 40 38 52 38 L86 38 C92 38 96 34 98 28 L104 16 L112 20 L106 30 C104 40 98 48 86 50 L60 50"/>
+    <path d="M30 52 C30 64 36 72 46 76"/>
+    <path d="M40 50 L38 84"/><path d="M56 50 L54 84"/>
+    <path d="M74 50 L78 84"/><path d="M86 50 L92 84"/>
+    <path d="M30 54 C20 58 18 70 22 82"/>
+    <path d="M100 18 L98 10 L104 14"/>
+    <circle cx="104" cy="24" r="1.6" fill="#46423c"/>
+  </svg>`;
+
+  function doodleMarkup() {
+    if (session.doodle === 'horse') return horseMarkup;
+    if (session.doodle) return `<img src="${session.doodle}" alt="">`;
+    return '';
+  }
+
+  function setupCanvas() {
+    if (canvasReady) return;
+    const canvas = document.getElementById('doodle-canvas');
+    if (!canvas || canvas.clientWidth === 0) return;
+    const dpr = window.devicePixelRatio || 1;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--graphite').trim();
+
+    let drawing = false;
+    let last = null;
+    const at = event => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    };
+    canvas.addEventListener('pointerdown', event => {
+      drawing = true;
+      last = at(event);
+      canvas.setPointerCapture(event.pointerId);
+    });
+    canvas.addEventListener('pointermove', event => {
+      if (!drawing) return;
+      const point = at(event);
+      ctx.beginPath();
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(point.x, point.y);
+      ctx.stroke();
+      last = point;
+      hasDrawn = true;
+    });
+    const stop = () => { drawing = false; };
+    canvas.addEventListener('pointerup', stop);
+    canvas.addEventListener('pointerleave', stop);
+    canvasReady = true;
+  }
+
+  function clearCanvas() {
+    const canvas = document.getElementById('doodle-canvas');
+    if (!canvas) return;
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    hasDrawn = false;
+  }
+
+  function skipDoodle() {
+    session.doodle = 'horse';
+    const area = document.getElementById('doodle-area');
+    if (area) {
+      area.classList.add('settled');
+      area.innerHTML = `<div class="doodle-settled"><span class="scrap" style="width:64px">${horseMarkup}</span><span>a horse will keep her company.</span></div>`;
+    }
+  }
+
+  function finalizeDoodle() {
+    if (session.doodle) return;
+    const canvas = document.getElementById('doodle-canvas');
+    session.doodle = (hasDrawn && canvas) ? canvas.toDataURL('image/png') : 'horse';
+  }
+
+  function captureCurrentScreen() {
+    const screen = screens[position];
+    const professionField = screen.querySelector('#profession');
+    if (professionField) session.profession = professionField.value.trim();
+    screen.querySelectorAll('[data-capture]').forEach(field => {
+      session[field.dataset.capture] = field.value.trim();
+    });
+  }
+
+  function recordSupport() {
+    session.support = Array.from(
+      document.querySelectorAll('[data-support]:checked')
+    ).map(box => box.dataset.support);
+  }
+
+  function fillRecall() {
+    document.querySelectorAll('[data-recall]').forEach(slot => {
+      const value = session[slot.dataset.recall];
+      if (value) {
+        slot.textContent = value;
+        slot.classList.remove('empty');
+      } else {
+        slot.textContent = '(left blank)';
+        slot.classList.add('empty');
+      }
+    });
+  }
+
+  function fillDriftSummary() {
+    const proximal = [session.answer2, session.answer3, session.answer4];
+    const filled = proximal.filter(Boolean).length;
+    document.getElementById('drift-summary').textContent = filled === 3
+      ? 'three answers to "what does maya need" captured — read them back and ask: did they move?'
+      : 'tip: fill all three "what does maya need" answers to feel the drift test.';
+  }
+
+  function updateCorner(screen) {
+    const show = session.doodle && !hideCornerOn.includes(screen.dataset.screen);
+    cornerDoodle.style.display = show ? 'block' : 'none';
+    if (show) cornerDoodle.innerHTML = doodleMarkup();
+  }
+
+  function prepare(screen) {
+    const name = screen.dataset.screen;
+    if (name === 'm7-your-words') fillRecall();
+    if (name === 'end') fillDriftSummary();
+    if (name === 'm9-board') boardDoodle.innerHTML = doodleMarkup();
+    body.classList.toggle('cold-mode', screen.classList.contains('cold'));
+    updateCorner(screen);
+    const inner = screen.querySelector('.page-inner');
+    if (inner) inner.scrollTop = 0;
+  }
+
+  function settle(screen) {
+    if (screen.dataset.screen === 'm2-meet-maya') setupCanvas();
+    const field = screen.querySelector('textarea, input[type="text"]');
+    if (field) field.focus();
+  }
+
+  function hardCut(nextIndex) {
+    screens[position].classList.remove('active');
+    position = nextIndex;
+    const next = screens[position];
+    prepare(next);
+    next.classList.add('active');
+    settle(next);
+  }
+
+  function turnTo(nextIndex) {
+    turning = true;
+    const current = screens[position];
+    const next = screens[nextIndex];
+    prepare(next);
+    next.classList.add('below');
+    current.classList.add('turning');
+    current.addEventListener('animationend', () => {
+      current.classList.remove('active', 'turning');
+      next.classList.remove('below');
+      next.classList.add('active');
+      position = nextIndex;
+      turning = false;
+      settle(next);
+    }, { once: true });
+  }
+
+  function go() {
+    if (turning) return;
+    if (screens[position].dataset.screen === 'm2-meet-maya') finalizeDoodle();
+    captureCurrentScreen();
+    recordSupport();
+    if (position >= screens.length - 1) return;
+    const nextIndex = position + 1;
+    const coldInvolved = screens[position].classList.contains('cold')
+      || screens[nextIndex].classList.contains('cold');
+    if (reduceMotion || coldInvolved) hardCut(nextIndex);
+    else turnTo(nextIndex);
+  }
+
+  document.getElementById('desk').addEventListener('click', event => {
+    const target = event.target.closest('button');
+    if (!target) return;
+
+    if (target.hasAttribute('data-clear-doodle')) { clearCanvas(); return; }
+    if (target.hasAttribute('data-skip-doodle')) { skipDoodle(); return; }
+    if (target.hasAttribute('data-consent')) {
+      session.consent = target.dataset.consent === 'yes';
+    }
+    if (target.hasAttribute('data-restart')) { location.reload(); return; }
+    if (target.hasAttribute('data-log')) {
+      console.log('Maya session:', JSON.parse(JSON.stringify(session)));
+      target.textContent = 'logged — open the console';
+      return;
+    }
+    if (target.hasAttribute('data-next') || target.hasAttribute('data-end')) go();
+  });
+
+  document.getElementById('desk').addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    if (event.target.tagName !== 'TEXTAREA') return;
+    event.preventDefault();
+    go();
+  });
+
+  screens[0].classList.add('active');
+  settle(screens[0]);
+</script>
+</body>
+</html>
