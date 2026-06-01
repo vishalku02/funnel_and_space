@@ -17,6 +17,15 @@
     --fruit: #9c3b2e;
     --rule: #ddd8cd;
 
+    --soil: #4f4636;
+    --soil-light: #6a5d49;
+    --leaf: #6f8560;
+    --leaf-deep: #54683f;
+    --trunk-live: #6b5d4f;
+    --trunk-dry: #8d8478;
+    --trunk-dry-edge: #6f675c;
+    --sun: #c0993f;
+
     --desk-light: #34362f;
     --desk-dark: #21221c;
 
@@ -377,6 +386,96 @@
   body.cold-mode .page.cold { border-radius: 0; }
   body.cold-mode #doodle-margin { display: none !important; }
 
+  /* ───── the rings (M1), the converging paths (M4d), the dead trunk (M5) ───── */
+  .rings-frame, .paths-frame, .trunk-frame { display: flex; justify-content: center; margin: 1.4em 0; }
+  .rings-art { width: 300px; max-width: 78%; height: auto; }
+  .paths-art { width: 320px; max-width: 84%; height: auto; }
+  .trunk-art { width: 200px; max-width: 56%; height: auto; }
+
+  @keyframes ringDraw { to { stroke-dashoffset: 0; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .rings-art .ring-core { opacity: 0; }
+  .rings-art.draw .ring { animation: ringDraw 1.2s ease forwards; }
+  .rings-art.draw .ring:nth-of-type(1) { animation-delay: 0.1s; }
+  .rings-art.draw .ring:nth-of-type(2) { animation-delay: 0.5s; }
+  .rings-art.draw .ring:nth-of-type(3) { animation-delay: 0.9s; }
+  .rings-art.draw .ring-core { animation: fadeIn 0.6s ease 1.5s forwards; }
+  .rings-art.snap .ring { animation: none; stroke-dashoffset: 0; }
+  .rings-art.snap .ring-core { animation: none; opacity: 1; }
+
+  .paths-art .paths, .paths-art .paths-trunk { opacity: 0; transition: opacity 1.3s ease; }
+  .paths-art.draw .paths { opacity: 0.85; }
+  .paths-art.draw .paths-trunk { opacity: 1; transition-delay: 0.9s; }
+  .paths-art.snap .paths { opacity: 0.85; transition: none; }
+  .paths-art.snap .paths-trunk { opacity: 1; transition: none; }
+
+  /* ───── the reveal (M8): rings tip into ground, trunk rises, canopy blooms ───── */
+  .tree-scene {
+    position: relative;
+    width: min(380px, 100%);
+    margin: 0.4em auto 1.2em;
+    aspect-ratio: 440 / 520;
+    perspective: 1100px;
+    overflow: visible;
+  }
+  .tree-scene .rings-layer,
+  .tree-scene .tree-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .rings-layer { transform-origin: 50% 45%; transition: transform 1.6s ease, opacity 1.6s ease; }
+  .soil-grp, .roots-grp, .fruit-grp { opacity: 0; transition: opacity 1.1s ease; }
+  .sun-grp { opacity: 0; transition: opacity 1.2s ease; }
+  .trunk-grp { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(0); transition: transform 1.3s cubic-bezier(.2,.7,.2,1); }
+  .canopy-grp { transform-box: fill-box; transform-origin: 50% 90%; transform: scale(0.12); opacity: 0; transition: transform 1.6s cubic-bezier(.2,.7,.2,1), opacity 1.2s ease; }
+  .fruit-fall { transform-box: fill-box; transform-origin: center; opacity: 0; }
+  .tree-caption, .tree-sub { opacity: 0; transition: opacity 1.1s ease; }
+  .tree-sub { font-size: 16px; color: var(--bark); }
+
+  @keyframes fruitFall {
+    0% { transform: translateY(0); opacity: 1; }
+    78% { opacity: 1; }
+    100% { transform: translateY(196px); opacity: 0.92; }
+  }
+
+  #m8-stage.revealed .rings-layer { transform: translateY(146px) rotateX(76deg) scale(1.05); opacity: 0.36; }
+  #m8-stage.revealed .soil-grp { opacity: 1; transition-delay: 1.2s; }
+  #m8-stage.revealed .trunk-grp { transform: scaleY(1); transition-delay: 1.4s; }
+  #m8-stage.revealed .roots-grp { opacity: 1; transition-delay: 1.9s; }
+  #m8-stage.revealed .sun-grp { opacity: 0.8; transition-delay: 3.1s; }
+  #m8-stage.revealed .canopy-grp { transform: scale(1); opacity: 1; transition-delay: 2.3s; }
+  #m8-stage.revealed .fruit-grp { opacity: 1; transition-delay: 3.4s; }
+  #m8-stage.revealed .fruit-fall { animation: fruitFall 1.9s ease-in 4s forwards; }
+  #m8-stage.revealed .tree-caption { opacity: 1; transition-delay: 4.4s; }
+  #m8-stage.revealed .tree-sub { opacity: 1; transition-delay: 4.8s; }
+
+  #m8-stage.snap .rings-layer { transition: none; transform: translateY(146px) rotateX(76deg) scale(1.05); opacity: 0.36; }
+  #m8-stage.snap .soil-grp,
+  #m8-stage.snap .roots-grp,
+  #m8-stage.snap .fruit-grp,
+  #m8-stage.snap .tree-caption,
+  #m8-stage.snap .tree-sub { transition: none; opacity: 1; }
+  #m8-stage.snap .sun-grp { transition: none; opacity: 0.8; }
+  #m8-stage.snap .trunk-grp { transition: none; transform: scaleY(1); }
+  #m8-stage.snap .canopy-grp { transition: none; transform: scale(1); opacity: 1; }
+
+  .board-tree {
+    flex: 0 0 auto;
+    width: 168px;
+    padding: 12px;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    transform: rotate(-2deg);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+  .board-tree svg { display: block; width: 100%; height: auto; }
+
   @media (prefers-reduced-motion: reduce) {
     .page.turning { animation: none; }
   }
@@ -406,7 +505,22 @@
     <section class="page" data-screen="m1-far-question" data-folio="1">
       <div class="page-inner">
         <p class="question">What is education for?</p>
-        <div class="placeholder tall">rings go here</div>
+        <div class="rings-frame">
+          <svg class="rings-art" id="rings-m1" viewBox="0 0 360 360" aria-hidden="true">
+            <g class="schematic" stroke="var(--pencil-faint)" stroke-width="0.8">
+              <line x1="180" y1="22" x2="180" y2="42"/>
+              <line x1="180" y1="318" x2="180" y2="338"/>
+              <line x1="22" y1="180" x2="42" y2="180"/>
+              <line x1="318" y1="180" x2="338" y2="180"/>
+            </g>
+            <g class="rings" fill="none" stroke="var(--pencil)" stroke-width="1.4">
+              <circle class="ring" cx="180" cy="180" r="150" style="stroke-dasharray:942;stroke-dashoffset:942"/>
+              <circle class="ring" cx="180" cy="180" r="100" style="stroke-dasharray:628;stroke-dashoffset:628"/>
+              <circle class="ring" cx="180" cy="180" r="54" style="stroke-dasharray:339;stroke-dashoffset:339"/>
+            </g>
+            <circle class="ring-core" cx="180" cy="180" r="6" fill="var(--ink)"/>
+          </svg>
+        </div>
         <textarea data-capture="answer1" rows="2"></textarea>
         <p class="hint">press enter when you're ready</p>
         <div class="actions"><button data-next>continue</button></div>
@@ -560,7 +674,20 @@
       <div class="page-inner">
         <p>Everyone gets their own path now.</p>
         <p>They all end in the same place.</p>
-        <div class="placeholder tall">many personalized paths converging on one point — which becomes the top of the bare trunk</div>
+        <div class="paths-frame">
+          <svg class="paths-art" viewBox="0 0 400 290" aria-hidden="true">
+            <g class="paths" fill="none" stroke="var(--bark)" stroke-width="1.2" stroke-linecap="round">
+              <path d="M28 14 C 112 92, 188 152, 200 234"/>
+              <path d="M86 14 C 142 92, 192 152, 200 234"/>
+              <path d="M143 14 C 176 92, 198 152, 200 234"/>
+              <path d="M200 14 L200 234"/>
+              <path d="M257 14 C 224 92, 202 152, 200 234"/>
+              <path d="M314 14 C 258 92, 208 152, 200 234"/>
+              <path d="M372 14 C 288 92, 212 152, 200 234"/>
+            </g>
+            <path class="paths-trunk" d="M192 234 L189 284 L211 284 L208 234 Z" fill="var(--trunk-dry)"/>
+          </svg>
+        </div>
         <div class="actions"><button data-next>continue</button></div>
         <p class="margin-glint">"The pathway may be personalized, but not the destination." — Holmes et al., 2022.</p>
       </div>
@@ -570,7 +697,21 @@
     <section class="page" data-screen="m5-improves" data-folio="8">
       <div class="page-inner">
         <p>A few weeks later, Maya finished the page. Her scores went up. She moved on to the next one.</p>
-        <div class="placeholder tall">the trunk: tall, bare, dry</div>
+        <div class="trunk-frame">
+          <svg class="trunk-art" viewBox="0 0 360 460" aria-hidden="true">
+            <path class="dead-trunk" d="M170 414 C 167 332, 172 252, 175 152 C 176 134, 184 134, 185 152 C 188 252, 193 332, 190 414 Z"
+                  fill="var(--trunk-dry)" stroke="var(--trunk-dry-edge)" stroke-width="1.2"/>
+            <g stroke="var(--trunk-dry)" stroke-width="6" stroke-linecap="round" fill="none">
+              <path d="M180 198 C 152 184, 132 178, 116 184"/>
+              <path d="M181 168 C 210 156, 232 156, 248 166"/>
+            </g>
+            <g stroke="var(--trunk-dry-edge)" stroke-width="0.7" opacity="0.5" fill="none">
+              <path d="M178 202 C 176 272, 175 332, 177 402"/>
+              <path d="M184 222 C 186 292, 187 352, 185 406"/>
+              <path d="M180 252 l -4 18 l 5 14"/>
+            </g>
+          </svg>
+        </div>
         <div class="actions"><button data-next>continue</button></div>
         <p class="margin-glint">Biesta — if education is only preparation, are we teaching for a world that will still exist?</p>
       </div>
@@ -604,10 +745,68 @@
 
     <section class="page" data-screen="m8-tree" data-folio="11">
       <div class="page-inner">
-        <div class="placeholder tall">tree goes here</div>
-        <p class="question">soil, air, light.</p>
-        <p>the things a tree can't grow without.</p>
-        <p>we never named them.<br>you might have, by now.</p>
+        <div id="m8-stage">
+          <div class="tree-scene">
+            <svg class="rings-layer" viewBox="0 0 440 520" aria-hidden="true">
+              <g fill="none" stroke="var(--pencil)" stroke-width="1.3">
+                <circle cx="220" cy="235" r="150"/>
+                <circle cx="220" cy="235" r="100"/>
+                <circle cx="220" cy="235" r="54"/>
+              </g>
+              <circle cx="220" cy="235" r="6" fill="var(--ink)"/>
+            </svg>
+            <svg class="tree-layer" viewBox="0 0 440 520" aria-hidden="true">
+              <g class="sun-grp" stroke="var(--sun)" stroke-width="1.2" fill="none">
+                <circle cx="372" cy="74" r="16"/>
+                <g stroke-linecap="round">
+                  <line x1="372" y1="44" x2="372" y2="52"/><line x1="372" y1="96" x2="372" y2="104"/>
+                  <line x1="342" y1="74" x2="350" y2="74"/><line x1="394" y1="74" x2="402" y2="74"/>
+                  <line x1="351" y1="53" x2="357" y2="59"/><line x1="387" y1="89" x2="393" y2="95"/>
+                  <line x1="351" y1="95" x2="357" y2="89"/><line x1="387" y1="59" x2="393" y2="53"/>
+                </g>
+              </g>
+              <g class="soil-grp">
+                <ellipse class="soil" cx="220" cy="398" rx="172" ry="30" fill="var(--soil)"/>
+                <g class="soil-tex" stroke="var(--soil-light)" stroke-width="1" opacity="0.6">
+                  <line x1="118" y1="396" x2="150" y2="396"/>
+                  <line x1="282" y1="404" x2="318" y2="404"/>
+                  <line x1="190" y1="410" x2="222" y2="410"/>
+                </g>
+              </g>
+              <g class="roots-grp" fill="none" stroke="var(--trunk-live)" stroke-width="2" stroke-linecap="round">
+                <path d="M210 396 C 188 412, 158 420, 132 440"/>
+                <path d="M218 398 C 214 418, 210 432, 206 452"/>
+                <path d="M228 396 C 246 414, 278 422, 306 442"/>
+                <path d="M214 398 C 200 416, 176 424, 150 436"/>
+                <path d="M226 398 C 240 414, 262 424, 286 432"/>
+              </g>
+              <g class="trunk-grp">
+                <path d="M205 398 C 202 330, 206 280, 210 236 C 211 230, 229 230, 230 236 C 234 280, 238 330, 235 398 Z"
+                      fill="var(--trunk-live)" stroke="#5b4f42" stroke-width="1"/>
+              </g>
+              <g class="canopy-grp">
+                <path class="canopy" d="M220 70 C 150 64, 104 104, 120 150 C 78 168, 92 226, 150 224 C 162 256, 200 258, 220 236 C 240 258, 278 256, 290 224 C 348 226, 362 168, 320 150 C 336 104, 290 64, 220 70 Z"
+                      fill="var(--leaf)" stroke="var(--leaf-deep)" stroke-width="1.4"/>
+                <g class="leaves" fill="var(--leaf-deep)" opacity="0.5">
+                  <ellipse cx="150" cy="150" rx="14" ry="7" transform="rotate(-22 150 150)"/>
+                  <ellipse cx="300" cy="140" rx="14" ry="7" transform="rotate(20 300 140)"/>
+                  <ellipse cx="220" cy="118" rx="14" ry="7"/>
+                  <ellipse cx="185" cy="200" rx="13" ry="6" transform="rotate(-12 185 200)"/>
+                  <ellipse cx="262" cy="196" rx="13" ry="6" transform="rotate(14 262 196)"/>
+                </g>
+                <g class="fruit-grp" fill="var(--fruit)">
+                  <circle cx="168" cy="186" r="7"/>
+                  <circle cx="276" cy="176" r="7"/>
+                  <circle cx="222" cy="156" r="7"/>
+                </g>
+              </g>
+              <circle class="fruit-fall" cx="250" cy="206" r="7" fill="var(--fruit)"/>
+            </svg>
+          </div>
+          <p class="question tree-caption">soil, air, light.</p>
+          <p class="tree-sub">the things a tree can't grow without.</p>
+          <p class="tree-sub">we never named them.<br>you might have, by now.</p>
+        </div>
         <div class="actions"><button data-next>continue</button></div>
       </div>
       <div class="folio"></div>
@@ -616,7 +815,32 @@
     <section class="page" data-screen="m9-board" data-folio="12">
       <div class="page-inner">
         <div class="board">
-          <div class="placeholder tall">tree goes here</div>
+          <div class="board-tree">
+            <svg viewBox="0 0 200 250" aria-hidden="true">
+              <g stroke="var(--sun)" stroke-width="0.9" fill="none">
+                <circle cx="168" cy="36" r="9"/>
+                <g stroke-linecap="round">
+                  <line x1="168" y1="20" x2="168" y2="25"/><line x1="168" y1="47" x2="168" y2="52"/>
+                  <line x1="152" y1="36" x2="157" y2="36"/><line x1="179" y1="36" x2="184" y2="36"/>
+                </g>
+              </g>
+              <ellipse cx="100" cy="196" rx="84" ry="15" fill="var(--soil)"/>
+              <g fill="none" stroke="var(--trunk-live)" stroke-width="1.6" stroke-linecap="round">
+                <path d="M94 195 C 80 206, 60 212, 44 224"/>
+                <path d="M106 195 C 120 208, 142 214, 158 224"/>
+                <path d="M100 196 C 99 210, 98 218, 97 230"/>
+              </g>
+              <path d="M92 196 C 90 150, 93 120, 96 100 C 97 96, 105 96, 106 100 C 109 120, 112 150, 110 196 Z"
+                    fill="var(--trunk-live)" stroke="#5b4f42" stroke-width="0.8"/>
+              <path d="M100 26 C 58 22, 32 48, 44 78 C 18 90, 28 128, 64 126 C 72 148, 96 150, 100 134 C 104 150, 128 148, 136 126 C 172 128, 182 90, 156 78 C 168 48, 142 22, 100 26 Z"
+                    fill="var(--leaf)" stroke="var(--leaf-deep)" stroke-width="1.1"/>
+              <g fill="var(--fruit)">
+                <circle cx="70" cy="96" r="4.5"/>
+                <circle cx="132" cy="88" r="4.5"/>
+                <circle cx="100" cy="74" r="4.5"/>
+              </g>
+            </svg>
+          </div>
           <div class="board-doodle" id="board-doodle"></div>
         </div>
         <p class="question">What is education for?</p>
@@ -809,8 +1033,28 @@
     if (inner) inner.scrollTop = 0;
   }
 
+  function playArt(svg) {
+    if (!svg) return;
+    svg.classList.remove('draw', 'snap');
+    void svg.offsetWidth;
+    svg.classList.add(reduceMotion ? 'snap' : 'draw');
+  }
+
+  function revealTree() {
+    const stage = document.getElementById('m8-stage');
+    if (!stage) return;
+    stage.classList.remove('revealed', 'snap');
+    void stage.offsetWidth;
+    if (reduceMotion) stage.classList.add('snap');
+    else setTimeout(() => stage.classList.add('revealed'), 1100);
+  }
+
   function settle(screen) {
-    if (screen.dataset.screen === 'm2-meet-maya') setupCanvas();
+    const name = screen.dataset.screen;
+    if (name === 'm2-meet-maya') setupCanvas();
+    if (name === 'm1-far-question') playArt(document.getElementById('rings-m1'));
+    if (name === 'm4d-tube') playArt(screen.querySelector('.paths-art'));
+    if (name === 'm8-tree') revealTree();
     const field = screen.querySelector('textarea, input[type="text"]');
     if (field) field.focus();
   }
