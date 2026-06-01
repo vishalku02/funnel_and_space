@@ -1,0 +1,2701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four Lenses on Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* warm base — slightly warmer paper for the watercolor register */
+    --page: #f6f1e6;
+    --page-edge: #ece3d0;
+    --ink: #2a221c;
+    --ink-soft: #5a4d3f;
+    --pencil: #9a8c76;
+    --rule: #ddd4c0;
+    --paper-shadow: rgba(48,38,28,0.10);
+
+    /* accents — confident warm rust */
+    --accent: #9a4a2a;
+    --accent-soft: #c47a52;
+
+    /* lens signatures (subtle tints) */
+    --behaviorist: #6a7a8a;
+    --behaviorist-bg: #eef0f2;
+    --cognitive: #8a6aaa;
+    --cognitive-bg: #f1ecf3;
+    --situated: #6a8a5a;
+    --situated-bg: #ecf0e7;
+    --sociocultural: #a05a6a;
+    --sociocultural-bg: #f3ebed;
+
+    /* current lens (updated by JS) */
+    --lens: var(--accent);
+    --lens-bg: var(--page);
+  }
+
+  * { box-sizing: border-box; }
+
+  /* handwritten utility — used for marginalia, schema labels, inferred states, case tab names */
+  .handwritten {
+    font-family: 'Caveat', 'Marker Felt', 'Bradley Hand', cursive;
+    font-weight: 500;
+  }
+
+  html, body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: Georgia, 'Iowan Old Style', serif;
+    font-size: 17px;
+    line-height: 1.65;
+    transition: background 0.8s ease;
+  }
+  body {
+    /* faint paper-tooth texture — barely visible, just enough to be felt */
+    background-image:
+      radial-gradient(circle at 30% 40%, rgba(180,150,110,0.025) 0%, transparent 35%),
+      radial-gradient(circle at 70% 70%, rgba(180,150,110,0.02) 0%, transparent 40%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.30  0 0 0 0 0.22  0 0 0 0.04 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+    background-blend-mode: multiply, multiply, multiply;
+  }
+  body.tinted { background-color: var(--lens-bg); }
+
+  .stage {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 56px 36px 96px;
+    min-height: 100vh;
+  }
+
+  /* beat sections — only one visible at a time */
+  .beat { display: none; }
+  .beat.active { display: block; animation: fadeIn 0.6s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  h1, h2, h3 { font-weight: normal; color: var(--ink); margin-top: 0; }
+  h1 { font-size: 30px; line-height: 1.25; margin-bottom: 12px; }
+  h2 { font-size: 22px; margin: 36px 0 14px; }
+  h3 { font-size: 16px; margin: 22px 0 10px; }
+
+  p { margin: 0 0 1.05em; color: var(--ink); }
+  .lede { font-size: 18.5px; line-height: 1.6; color: var(--ink); margin-bottom: 1.5em; }
+  .quiet { color: var(--ink-soft); }
+  em { color: var(--accent); font-style: italic; }
+
+  .kicker {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--pencil);
+    margin: 0 0 14px;
+  }
+
+  /* form bits */
+  input[type="text"], textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--ink-soft);
+    color: var(--ink);
+    font-family: Georgia, serif;
+    font-size: 18px;
+    line-height: 1.55;
+    padding: 8px 2px;
+    resize: none;
+  }
+  textarea { min-height: 3em; }
+  input[type="text"]:focus, textarea:focus { outline: none; border-bottom-color: var(--accent); }
+  label.field { display: block; font-size: 13px; color: var(--ink-soft); margin-top: 8px; }
+
+  button {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--ink-soft);
+    border-radius: 2px;
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+  button:hover { background: rgba(0,0,0,0.04); border-color: var(--accent); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary { background: var(--accent); color: var(--page); border-color: var(--accent); }
+  button.primary:hover { background: #875a30; }
+  button.quiet { border-color: transparent; color: var(--pencil); }
+  button.quiet:hover { background: transparent; color: var(--ink-soft); }
+  .actions { display: flex; gap: 14px; align-items: center; margin-top: 28px; }
+
+  /* progress dots */
+  .progress {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 50;
+  }
+  .progress .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--pencil);
+    opacity: 0.4;
+    transition: all 0.3s ease;
+  }
+  .progress .dot.done { opacity: 0.7; background: var(--ink-soft); }
+  .progress .dot.active { opacity: 1; background: var(--accent); transform: scale(1.4); }
+
+  /* ─── BEAT 1: case picker ──────────────────────── */
+  .case-picker {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0 18px;
+    flex-wrap: wrap;
+  }
+  .case-btn {
+    flex: 1 1 auto;
+    min-width: 150px;
+    padding: 11px 14px;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-bottom: 2px solid var(--rule);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.25s ease;
+    font-family: Georgia, serif;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .case-btn:hover { border-color: var(--accent-soft); }
+  .case-btn.active {
+    background: rgba(154, 74, 42, 0.05);
+    border-bottom-color: var(--accent);
+  }
+  .case-btn .case-name {
+    font-family: 'Caveat', 'Marker Felt', cursive;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1;
+    display: block;
+    margin-bottom: 2px;
+    color: var(--ink);
+  }
+  .case-btn .case-sub {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pencil);
+    display: block;
+  }
+  .case-btn.active .case-sub { color: var(--accent); }
+
+  /* show only the active case group inside the scene SVG */
+  .case-group { display: none; }
+  .case-group.active { display: inline; }
+
+  /* ─── BEAT 1: lens-switcher ─────────────────────── */
+  .lens-stage {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 28px;
+    margin: 24px 0 18px;
+    align-items: start;
+  }
+  @media (max-width: 760px) {
+    .lens-stage { grid-template-columns: 1fr; }
+  }
+
+  .lens-canvas-wrap {
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px;
+    transition: background 0.5s ease, border-color 0.5s ease;
+  }
+  body.lens-active .lens-canvas-wrap {
+    background: var(--lens-bg);
+    border-color: color-mix(in srgb, var(--lens) 30%, var(--rule));
+  }
+  .lens-canvas { width: 100%; height: auto; display: block; cursor: default; }
+  /* hide native cursor everywhere inside the canvas wrap when a lens is active */
+  body.lens-active .lens-canvas-wrap,
+  body.lens-active .lens-canvas-wrap *,
+  body.lens-active .lens-canvas,
+  body.lens-active .lens-canvas * { cursor: none !important; }
+
+  .lens-cursor {
+    position: fixed;
+    width: 44px; height: 44px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    transform: translate(-50%, -50%);
+  }
+  body.lens-active .lens-cursor.show { opacity: 1; }
+
+  /* clickable scene elements */
+  .scene-el { cursor: pointer; transition: filter 0.3s ease, opacity 0.7s ease; }
+  .scene-el:hover { filter: drop-shadow(0 0 6px var(--lens)); }
+  .scene-label {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    fill: var(--ink-soft);
+    pointer-events: none;
+  }
+
+  /* per-lens persistent overlay groups — hidden by default */
+  .lens-overlay { opacity: 0; transition: opacity 0.7s ease; pointer-events: none; }
+  body.lens-behaviorist .case-group.active .ov-behaviorist,
+  body.lens-cognitive .case-group.active .ov-cognitive,
+  body.lens-situated .case-group.active .ov-situated,
+  body.lens-sociocultural .case-group.active .ov-sociocultural { opacity: 1; }
+
+  /* overlay graphics specific styles */
+  .ov-label {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .ov-data {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 8.5px;
+  }
+  .ov-italic {
+    font-family: Georgia, serif;
+    font-size: 11px;
+    font-style: italic;
+  }
+  .ov-pulse {
+    animation: ovPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes ovPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  .ov-line-dashed {
+    stroke-dasharray: 4 4;
+    animation: dashMarch 14s linear infinite;
+  }
+  @keyframes dashMarch {
+    to { stroke-dashoffset: -56; }
+  }
+
+  /* annotation popover that follows the cursor / element */
+  .annotation {
+    position: fixed;
+    z-index: 900;
+    background: var(--page);
+    border: 1px solid var(--lens);
+    border-radius: 2px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink);
+    max-width: 240px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 14px var(--paper-shadow);
+  }
+  .annotation.show { opacity: 1; }
+  .annotation .a-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lens);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* lens toolbar */
+  .lens-toolbar {
+    display: flex;
+    gap: 8px;
+    margin: 14px 0 6px;
+    flex-wrap: wrap;
+  }
+  .lens-btn {
+    flex: 1 1 auto;
+    min-width: 110px;
+    padding: 10px 12px;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--rule);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .lens-btn:hover { border-color: color-mix(in srgb, var(--lens-color) 60%, var(--rule)); }
+  .lens-btn.active {
+    background: color-mix(in srgb, var(--lens-color) 8%, var(--page));
+    border-left-color: var(--lens-color);
+    border-color: color-mix(in srgb, var(--lens-color) 40%, var(--rule));
+  }
+  .lens-btn[data-lens="behaviorist"] { --lens-color: var(--behaviorist); }
+  .lens-btn[data-lens="cognitive"] { --lens-color: var(--cognitive); }
+  .lens-btn[data-lens="situated"] { --lens-color: var(--situated); }
+  .lens-btn[data-lens="sociocultural"] { --lens-color: var(--sociocultural); }
+  .lens-btn .lens-key {
+    font-family: -apple-system, sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pencil);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .lens-btn.active .lens-key { color: var(--lens-color); }
+  .lens-hint {
+    font-size: 12px;
+    color: var(--pencil);
+    margin: 0 0 6px;
+    font-style: italic;
+  }
+
+  /* sidebar */
+  .lens-sidebar {
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--lens);
+    border-radius: 3px;
+    padding: 18px 20px;
+    transition: border-color 0.5s ease, background 0.5s ease;
+  }
+  body.lens-active .lens-sidebar { background: var(--lens-bg); }
+  .lens-sidebar h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .lens-sidebar .lens-tag {
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lens);
+    margin-bottom: 14px;
+    display: block;
+  }
+  .lens-sidebar .section {
+    margin: 14px 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .lens-sidebar .section h4 {
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 4px;
+    font-weight: 600;
+  }
+  .lens-sidebar ul { margin: 0; padding-left: 18px; }
+  .lens-sidebar li { margin: 3px 0; color: var(--ink); }
+  .lens-sidebar .recommend { color: var(--lens); font-style: italic; }
+  .lens-sidebar .cant-see { color: var(--ink-soft); font-style: italic; }
+
+  /* ─── BEATS 2-3: 2D map ────────────────────────── */
+  .map-wrap {
+    position: relative;
+    width: 100%;
+    margin: 22px 0 14px;
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px;
+  }
+  .map-svg {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    display: block;
+    cursor: default;
+  }
+  .map-svg.placing { cursor: crosshair; }
+
+  .map-region { fill-opacity: 0.16; stroke: var(--ink-soft); stroke-width: 0.5; stroke-dasharray: 3 3; }
+  .map-region.behaviorist { fill: var(--behaviorist); }
+  .map-region.cognitive { fill: var(--cognitive); }
+  .map-region.situated { fill: var(--situated); }
+  .map-region.sociocultural { fill: var(--sociocultural); }
+  .region-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    fill: var(--ink-soft);
+  }
+  .axis-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    fill: var(--pencil);
+  }
+  .axis-line { stroke: var(--rule); stroke-width: 0.7; }
+
+  .pattern-dot {
+    cursor: pointer;
+    transition: r 0.2s ease, filter 0.2s ease;
+    stroke: #2a221c;
+    stroke-width: 0.6;
+  }
+  .pattern-dot:hover { filter: drop-shadow(0 0 6px var(--accent)); }
+  .pattern-label {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 11px;
+    fill: var(--ink-soft);
+    pointer-events: none;
+  }
+  .pattern-dot.user { fill: #f3d4a8 !important; stroke: var(--accent); stroke-width: 1.6; }
+  .pattern-dot.proximate { stroke: var(--accent); stroke-width: 2; r: 9; }
+
+  .personal-marker { cursor: grab; }
+  .personal-marker:active { cursor: grabbing; }
+  .design-dot {
+    fill: var(--accent);
+    stroke: var(--page);
+    stroke-width: 2;
+    filter: drop-shadow(0 1px 3px rgba(154, 106, 58, 0.5));
+    transition: cx 0.4s ease, cy 0.4s ease;
+  }
+
+  /* pattern card — tilted index-card style */
+  .pattern-card {
+    position: absolute;
+    z-index: 50;
+    background: #fbf6e9;
+    background-image: linear-gradient(180deg, transparent 26px, rgba(154,74,42,0.12) 26px, rgba(154,74,42,0.12) 27px, transparent 27px);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--accent-soft);
+    border-radius: 2px;
+    padding: 14px 16px 14px 18px;
+    max-width: 280px;
+    font-size: 13px;
+    line-height: 1.5;
+    box-shadow: 0 6px 18px var(--paper-shadow), 0 1px 3px rgba(48,38,28,0.08);
+    transform: rotate(-1.4deg);
+    transform-origin: top left;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+  .pattern-card.show { opacity: 1; pointer-events: auto; }
+  .pattern-card h4 { margin: 0 0 4px; font-size: 15px; color: var(--ink); }
+  .pattern-card .p-meta {
+    font-family: -apple-system, sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pencil);
+    margin-bottom: 8px;
+  }
+  .pattern-card .lens-chips { display: flex; gap: 4px; margin: 6px 0; flex-wrap: wrap; }
+  .lens-chip {
+    font-family: -apple-system, sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    color: white;
+  }
+  .lens-chip.behaviorist { background: var(--behaviorist); }
+  .lens-chip.cognitive { background: var(--cognitive); }
+  .lens-chip.situated { background: var(--situated); }
+  .lens-chip.sociocultural { background: var(--sociocultural); }
+  .lens-chip.muted { background: var(--pencil); opacity: 0.5; }
+  .pattern-card .failure {
+    font-size: 12.5px;
+    font-style: italic;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--rule);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+
+  /* modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20,18,16,0.5);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 28px 32px;
+    width: min(94vw, 480px);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h3 { margin: 0 0 6px; }
+  .lens-check {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+  }
+  .lens-check label {
+    flex: 1 1 calc(50% - 4px);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+  }
+  .lens-check label:hover { border-color: var(--accent); }
+  .lens-check input { accent-color: var(--accent); }
+  .lens-check label.behaviorist:has(input:checked) { background: var(--behaviorist-bg); border-color: var(--behaviorist); }
+  .lens-check label.cognitive:has(input:checked) { background: var(--cognitive-bg); border-color: var(--cognitive); }
+  .lens-check label.situated:has(input:checked) { background: var(--situated-bg); border-color: var(--situated); }
+  .lens-check label.sociocultural:has(input:checked) { background: var(--sociocultural-bg); border-color: var(--sociocultural); }
+
+  /* ─── BEAT 4: design-bench ──────────────────────── */
+  .bench-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 28px;
+    margin: 22px 0 14px;
+  }
+  @media (max-width: 760px) {
+    .bench-grid { grid-template-columns: 1fr; }
+  }
+
+  .bench-controls {
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px 20px;
+  }
+  .bench-controls h3 { margin: 0 0 12px; font-size: 16px; }
+
+  .context-picker { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 18px; }
+  .context-picker label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s ease;
+  }
+  .context-picker label:hover { background: rgba(154,106,58,0.06); }
+  .context-picker input { accent-color: var(--accent); }
+
+  .slider-row { margin: 14px 0; }
+  .slider-row .s-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .slider-row .s-label .s-name { color: var(--ink); }
+  .slider-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .slider-row .s-ends {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--pencil);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  .bench-readings {
+    background: var(--page);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 18px 20px;
+  }
+  .bench-readings h3 { margin: 0 0 12px; font-size: 16px; }
+  .lens-reading {
+    border-left: 3px solid var(--lens-color);
+    padding: 8px 0 8px 12px;
+    margin: 10px 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .lens-reading[data-lens="behaviorist"] { --lens-color: var(--behaviorist); }
+  .lens-reading[data-lens="cognitive"] { --lens-color: var(--cognitive); }
+  .lens-reading[data-lens="situated"] { --lens-color: var(--situated); }
+  .lens-reading[data-lens="sociocultural"] { --lens-color: var(--sociocultural); }
+  .lens-reading .r-name {
+    font-family: -apple-system, sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lens-color);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .recall-block { margin: 18px 0; padding: 14px 18px; border-left: 2px solid var(--accent-soft); background: rgba(196,160,122,0.07); border-radius: 2px; }
+  .recall-block .r-label { font-size: 12px; color: var(--ink-soft); font-style: italic; margin-bottom: 4px; }
+  .recall-block .r-text { font-size: 17px; color: var(--ink); line-height: 1.55; }
+  .recall-block .r-text.empty { color: var(--pencil); font-style: italic; }
+
+  /* end card */
+  .credit-card {
+    margin: 36px 0 0;
+    padding: 18px 22px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  .small-note {
+    font-size: 12px;
+    color: var(--pencil);
+    margin-top: 18px;
+    font-style: italic;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01s !important; transition-duration: 0.05s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- ───── BEAT 0: Cold open ───── -->
+  <section class="beat" data-beat="0">
+    <p class="kicker">A short situation</p>
+    <h1>Meet Alex.</h1>
+    <p class="lede">Alex is six weeks into learning to code. For the last hour, they've been stuck on the same exercise — moving a small robot through a grid using a loop. Their code keeps timing out. They've tried eight things. None worked.</p>
+    <p>The course is built around a community: short lecture videos, weekly section meetings with a leader, a discussion forum where other learners post about the exact same exercises. Alex hasn't opened the forum yet.</p>
+    <p>Alex is at home. It's Sunday evening. They could be doing other things.</p>
+
+    <label class="field" for="answer1">What does Alex need right now?</label>
+    <textarea id="answer1" data-capture="answer1" rows="3" autocomplete="off"></textarea>
+    <div class="actions">
+      <button class="primary" data-next>continue</button>
+    </div>
+  </section>
+
+  <!-- ───── BEAT 1: Lens-switcher ───── -->
+  <section class="beat" data-beat="1">
+    <p class="kicker">Beat 1 · Four lenses, one situation</p>
+    <h1>Look at Alex through four different perspectives.</h1>
+    <p class="lede">There are four major perspectives in learning science. Each one foregrounds different things. Below, the same scene — pick up a lens. Move it over the elements. See what each perspective sees, and what it cannot.</p>
+
+    <p class="lens-hint">First, pick a case. Then pick a lens — your cursor becomes that lens. Hover over any element in the scene.</p>
+
+    <div class="case-picker" role="tablist" aria-label="Choose a scenario">
+      <button class="case-btn active" data-case="alex" role="tab">
+        <span class="case-name">Alex</span>
+        <span class="case-sub">learning to code · home + online course</span>
+      </button>
+      <button class="case-btn" data-case="maya" role="tab">
+        <span class="case-name">Maya</span>
+        <span class="case-sub">10 y/o · ITS in classroom</span>
+      </button>
+      <button class="case-btn" data-case="devi" role="tab">
+        <span class="case-name">Devi</span>
+        <span class="case-sub">adult learner · music jam</span>
+      </button>
+    </div>
+
+    <div class="lens-toolbar" role="tablist">
+      <button class="lens-btn" data-lens="behaviorist" role="tab"><span class="lens-key">1 · Behaviorist</span>Observable skills &amp; mastery</button>
+      <button class="lens-btn" data-lens="cognitive" role="tab"><span class="lens-key">2 · Cognitive</span>Mental models &amp; sense-making</button>
+      <button class="lens-btn" data-lens="situated" role="tab"><span class="lens-key">3 · Situated / Distributed</span>Tools, peers, practice</button>
+      <button class="lens-btn" data-lens="sociocultural" role="tab"><span class="lens-key">4 · Socio-cultural</span>Culture &amp; identity</button>
+    </div>
+
+    <div class="lens-stage">
+      <div class="lens-canvas-wrap">
+        <svg class="lens-canvas" id="scene" viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg" aria-label="Scene: Alex at a desk in an open office">
+          <defs>
+            <!-- sketchy filter — wavy displacement, just enough to feel hand-drawn -->
+            <filter id="sk" x="-5%" y="-5%" width="110%" height="110%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7"/>
+              <feDisplacementMap in="SourceGraphic" scale="1.6"/>
+            </filter>
+            <filter id="sk-soft" x="-5%" y="-5%" width="110%" height="110%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="11"/>
+              <feDisplacementMap in="SourceGraphic" scale="1.0"/>
+            </filter>
+            <!-- watercolor washes — warm for skin / wood, cool for screens, violet for inferred state -->
+            <radialGradient id="ww-skin" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#c47a52" stop-opacity="0.55"/>
+              <stop offset="80%" stop-color="#c47a52" stop-opacity="0.10"/>
+              <stop offset="100%" stop-color="#c47a52" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="ww-wood" cx="50%" cy="50%" r="55%">
+              <stop offset="0%" stop-color="#9a6a3a" stop-opacity="0.40"/>
+              <stop offset="80%" stop-color="#9a6a3a" stop-opacity="0.10"/>
+              <stop offset="100%" stop-color="#9a6a3a" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="ww-screen" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#3a4a6a" stop-opacity="0.45"/>
+              <stop offset="80%" stop-color="#3a4a6a" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#3a4a6a" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="ww-violet" cx="50%" cy="40%" r="55%">
+              <stop offset="0%" stop-color="#8a6aaa" stop-opacity="0.32"/>
+              <stop offset="100%" stop-color="#8a6aaa" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="ww-slack" cx="50%" cy="50%" r="65%">
+              <stop offset="0%" stop-color="#9a4a2a" stop-opacity="0.32"/>
+              <stop offset="100%" stop-color="#9a4a2a" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="ww-metrics" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stop-color="#5a6a7a" stop-opacity="0.32"/>
+              <stop offset="100%" stop-color="#5a6a7a" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- ═══════════ CASE: ALEX (learning to code, at home + online course) ═══════════ -->
+          <g class="case-group active" data-case="alex">
+          <!-- room background: warm home wash -->
+          <ellipse cx="210" cy="160" rx="240" ry="160" fill="url(#ww-wood)" opacity="0.55"/>
+          <!-- floor / table line — sketchy -->
+          <g filter="url(#sk-soft)">
+            <line x1="0" y1="240" x2="420" y2="240" stroke="#9a8c76" stroke-width="1.1" stroke-linecap="round"/>
+            <line x1="2" y1="241.5" x2="418" y2="241.5" stroke="#9a8c76" stroke-width="0.5" stroke-linecap="round" opacity="0.55"/>
+          </g>
+          <text x="14" y="22" class="scene-label">AT HOME · SUNDAY 8PM</text>
+
+          <!-- decorative mug (not hoverable) -->
+          <g filter="url(#sk-soft)" opacity="0.7">
+            <ellipse cx="278" cy="186" rx="9" ry="3" fill="url(#ww-slack)"/>
+            <path d="M270 176 L270 188 q0 3 8 3 q8 0 8 -3 L286 176 z" fill="none" stroke="#5a4d3f" stroke-width="0.8" stroke-linecap="round"/>
+            <path d="M286 180 q5 0 5 4 q0 4 -5 4" fill="none" stroke="#5a4d3f" stroke-width="0.8"/>
+          </g>
+
+          <!-- ALEX at home (casual t-shirt vs office shirt) -->
+          <g class="scene-el" data-el="alex" tabindex="0">
+            <ellipse cx="210" cy="120" rx="22" ry="22" fill="url(#ww-skin)"/>
+            <ellipse cx="210" cy="183" rx="68" ry="14" fill="url(#ww-wood)"/>
+            <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <!-- desk / table -->
+              <path d="M160 182 L260 182 L260 188 L160 188 Z"/>
+              <!-- head -->
+              <circle cx="210" cy="120" r="14"/>
+              <!-- casual t-shirt (looser silhouette) -->
+              <path d="M190 156 Q210 142 230 156 L230 180 L190 180 Z"/>
+              <!-- stray hair -->
+              <path d="M201 108 Q205 102 213 106" stroke-width="0.9"/>
+            </g>
+            <!-- laptop body filled with darker wash -->
+            <ellipse cx="210" cy="170" rx="42" ry="12" fill="url(#ww-screen)"/>
+            <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="170" y="158" width="80" height="24" rx="2"/>
+            </g>
+            <text x="210" y="208" text-anchor="middle" class="scene-label">ALEX</text>
+          </g>
+
+          <!-- KAREL exercise on screen — small grid + robot icon -->
+          <g class="scene-el" data-el="karel" tabindex="0">
+            <!-- 4x3 grid -->
+            <g stroke="#9ab0c0" stroke-width="0.4" fill="none" opacity="0.8">
+              <line x1="180" y1="163" x2="180" y2="178"/>
+              <line x1="190" y1="163" x2="190" y2="178"/>
+              <line x1="200" y1="163" x2="200" y2="178"/>
+              <line x1="210" y1="163" x2="210" y2="178"/>
+              <line x1="220" y1="163" x2="220" y2="178"/>
+              <line x1="230" y1="163" x2="230" y2="178"/>
+              <line x1="240" y1="163" x2="240" y2="178"/>
+              <line x1="178" y1="168" x2="242" y2="168"/>
+              <line x1="178" y1="173" x2="242" y2="173"/>
+            </g>
+            <!-- the little robot in one cell -->
+            <g filter="url(#sk-soft)">
+              <rect x="181" y="164" width="8" height="3" fill="#c47a52" rx="0.5"/>
+              <rect x="183" y="162" width="4" height="2" fill="#c47a52" rx="0.5"/>
+            </g>
+            <!-- target / goal cell -->
+            <circle cx="234" cy="175" r="1.5" fill="#9a4a2a" class="ov-pulse"/>
+            <!-- label -->
+            <text x="210" y="155" text-anchor="middle" font-family="JetBrains Mono, Menlo, monospace" font-size="4.5" fill="#cfe0ed">KAREL · EX 3.2</text>
+          </g>
+
+          <!-- LECTURE video on a phone propped beside the laptop (replaces peer1 position) -->
+          <g class="scene-el" data-el="lecture" tabindex="0">
+            <ellipse cx="80" cy="180" rx="28" ry="22" fill="url(#ww-screen)" opacity="0.85"/>
+            <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <!-- phone body, portrait -->
+              <rect x="62" y="148" width="36" height="56" rx="4"/>
+              <!-- screen area -->
+              <rect x="66" y="156" width="28" height="38" fill="#2a3a4a" stroke="none"/>
+            </g>
+            <!-- play button -->
+            <g filter="url(#sk-soft)">
+              <circle cx="80" cy="175" r="7" fill="none" stroke="#cfe0ed" stroke-width="1"/>
+              <path d="M77 172 L85 175 L77 178 Z" fill="#cfe0ed"/>
+            </g>
+            <!-- progress bar -->
+            <rect x="68" y="188" width="24" height="2" fill="#3a4a5a"/>
+            <rect x="68" y="188" width="9" height="2" fill="#cfe0ed" opacity="0.7"/>
+            <text x="80" y="222" text-anchor="middle" class="scene-label">LECTURE · PAUSED</text>
+          </g>
+
+          <!-- PEER (another learner — small webcam-style avatar) (replaces peer2 position) -->
+          <g class="scene-el" data-el="peer" tabindex="0">
+            <ellipse cx="340" cy="180" rx="28" ry="22" fill="url(#ww-screen)" opacity="0.85"/>
+            <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+              <!-- webcam thumbnail rect -->
+              <rect x="318" y="156" width="44" height="38" rx="2"/>
+              <!-- the peer's face in the thumbnail -->
+              <circle cx="340" cy="172" r="6" fill="url(#ww-skin)" opacity="0.9" stroke="#2a221c" stroke-width="0.9"/>
+              <path d="M332 188 q8 -6 16 0 L348 195 L332 195 Z"/>
+            </g>
+            <!-- green online dot -->
+            <circle cx="358" cy="160" r="2" fill="#6a8a5a"/>
+            <text x="340" y="222" text-anchor="middle" class="scene-label">PEER · ONLINE</text>
+            <text x="340" y="232" text-anchor="middle" font-family="Caveat, cursive" font-size="11" fill="#5a4d3f">"also on ex 3.2"</text>
+          </g>
+
+          <!-- SECTION-LEADER offstage upper right (replaces senior position) -->
+          <g class="scene-el" data-el="section-leader" tabindex="0" opacity="0.85">
+            <ellipse cx="395" cy="90" rx="14" ry="16" fill="url(#ww-skin)" opacity="0.7"/>
+            <g filter="url(#sk-soft)" fill="none" stroke="#5a4d3f" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+              <circle cx="395" cy="86" r="8"/>
+              <path d="M388 100 Q395 92 402 100 L402 112 L388 112 Z"/>
+            </g>
+            <!-- green "office hours now" indicator -->
+            <circle cx="406" cy="80" r="2.5" fill="#6a8a5a" class="ov-pulse"/>
+            <text x="395" y="128" text-anchor="middle" class="scene-label" opacity="0.7">SARA · OH NOW</text>
+          </g>
+
+          <!-- FORUM (course discussion panel — replaces helpchannel position) -->
+          <g class="scene-el" data-el="forum" tabindex="0">
+            <ellipse cx="49" cy="92" rx="40" ry="22" fill="url(#ww-slack)"/>
+            <g filter="url(#sk-soft)" fill="none" stroke="#9a4a2a" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="18" y="74" width="62" height="32" rx="3"/>
+            </g>
+            <text x="49" y="82" text-anchor="middle" font-family="JetBrains Mono, Menlo, monospace" font-size="6.5" fill="#9a4a2a" letter-spacing="0.04em">forum · #ex-3-2</text>
+            <!-- avatar dots representing active learners -->
+            <g fill="#9a4a2a" opacity="0.7">
+              <circle cx="26" cy="92" r="2"/>
+              <circle cx="32" cy="92" r="2"/>
+              <circle cx="38" cy="92" r="2"/>
+              <circle cx="44" cy="92" r="2"/>
+              <circle cx="50" cy="92" r="2"/>
+              <text x="58" y="94" font-family="JetBrains Mono, Menlo, monospace" font-size="5.5" fill="#9a4a2a">+12</text>
+            </g>
+            <text x="49" y="103" text-anchor="middle" font-family="Caveat, cursive" font-size="10" fill="#9a8c76">"i can't get the loop to..."</text>
+            <text x="49" y="120" text-anchor="middle" class="scene-label" opacity="0.7">FORUM · UNREAD</text>
+          </g>
+
+          <!-- PROGRESS panel (replaces metrics position) -->
+          <g class="scene-el" data-el="progress" tabindex="0">
+            <ellipse cx="340" cy="76" rx="70" ry="26" fill="url(#ww-metrics)"/>
+            <g filter="url(#sk-soft)" fill="none" stroke="#5a6a7a" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="280" y="58" width="120" height="38" rx="2"/>
+            </g>
+            <text x="288" y="72" font-family="JetBrains Mono, Menlo, monospace" font-size="7.5" fill="#2a3a4a" letter-spacing="0.02em">karel: 3 / 7</text>
+            <text x="288" y="84" font-family="JetBrains Mono, Menlo, monospace" font-size="7.5" fill="#2a3a4a" letter-spacing="0.02em">ex 3.2 · attempt 8</text>
+            <text x="288" y="93" font-family="JetBrains Mono, Menlo, monospace" font-size="6" fill="#9a4a2a" font-style="italic">timing out</text>
+          </g>
+
+          <!-- INFERRED STATE — tab-cycling -->
+          <g class="scene-el" data-el="state" tabindex="0">
+            <ellipse cx="240" cy="100" rx="32" ry="18" fill="url(#ww-violet)"/>
+            <g filter="url(#sk-soft)" fill="none" stroke="#8a6aaa" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="240" cy="100" rx="26" ry="14" stroke-dasharray="2 2"/>
+            </g>
+            <text x="240" y="104" text-anchor="middle" font-family="Caveat, cursive" font-weight="500" font-size="13" fill="#5a4070">tab-cycling</text>
+            <text x="240" y="78" text-anchor="middle" class="scene-label" opacity="0.7">INFERRED</text>
+          </g>
+
+          <!-- ═══ PER-LENS PERSISTENT OVERLAYS ═══ -->
+          <!-- Each lens's overlay borrows a different register: -->
+          <!-- Behaviorist = clinical instrument (crisp lines, monospace) -->
+          <!-- Cognitive   = textbook schema (sketchy bubble + pencil network) -->
+          <!-- Situated    = ecological network (sketchy organic lines) -->
+          <!-- Socio-cult  = critic's marginalia (italic ink + dotted boundaries) -->
+
+          <!-- BEHAVIORIST overlay: instrument readout (crisp, NOT sketchy) -->
+          <g class="lens-overlay ov-behaviorist" id="ov-behaviorist">
+            <g stroke="#6a7a8a" stroke-width="0.3" opacity="0.16">
+              <line x1="0" y1="60" x2="420" y2="60"/>
+              <line x1="0" y1="120" x2="420" y2="120"/>
+              <line x1="0" y1="180" x2="420" y2="180"/>
+              <line x1="0" y1="280" x2="420" y2="280"/>
+              <line x1="80" y1="0" x2="80" y2="320"/>
+              <line x1="170" y1="0" x2="170" y2="320"/>
+              <line x1="260" y1="0" x2="260" y2="320"/>
+              <line x1="350" y1="0" x2="350" y2="320"/>
+            </g>
+            <g transform="translate(166, 99)">
+              <rect x="0" y="0" width="44" height="13" fill="#eef0f2" stroke="#6a7a8a" stroke-width="0.5"/>
+              <text x="22" y="9" text-anchor="middle" class="ov-data" fill="#3a4148">LEARNER #4417</text>
+            </g>
+            <text x="402" y="50" text-anchor="end" class="ov-label" fill="#9a4a2a">▼ ex 3.2 not met</text>
+            <g transform="translate(154, 152)">
+              <rect x="0" y="0" width="56" height="10" fill="#eef0f2" stroke="#6a7a8a" stroke-width="0.5"/>
+              <text x="28" y="7.5" text-anchor="middle" class="ov-data" fill="#3a4148">SKILL · LOOP</text>
+            </g>
+            <g transform="translate(280, 110)">
+              <text x="0" y="0" class="ov-label" fill="#3a4148">module progress</text>
+              <rect x="0" y="3" width="120" height="4" fill="#d8ddd9"/>
+              <rect x="0" y="3" width="51" height="4" fill="#6a7a8a"/>
+              <line x1="120" y1="0" x2="120" y2="9" stroke="#9a4a2a" stroke-width="1"/>
+            </g>
+          </g>
+
+          <!-- COGNITIVE overlay: textbook schema, slightly sketchy -->
+          <g class="lens-overlay ov-cognitive" id="ov-cognitive">
+            <g filter="url(#sk-soft)" fill="none" stroke="#8a6aaa" stroke-width="1.1" stroke-dasharray="3 2.5" opacity="0.85" stroke-linecap="round">
+              <ellipse cx="210" cy="56" rx="98" ry="42"/>
+              <circle cx="172" cy="108" r="3"/>
+              <circle cx="166" cy="118" r="2"/>
+            </g>
+            <g fill="#8a6aaa">
+              <circle cx="170" cy="48" r="3.5"/>
+              <circle cx="216" cy="68" r="3.5"/>
+            </g>
+            <g class="ov-pulse">
+              <circle cx="252" cy="46" r="5" fill="none" stroke="#9a4a2a" stroke-width="1.4" stroke-dasharray="2 2"/>
+            </g>
+            <g font-family="Caveat, cursive" font-size="14" fill="#5a4070">
+              <text x="170" y="40" text-anchor="middle">if / else ✓</text>
+              <text x="216" y="86" text-anchor="middle">for-loops ✓</text>
+            </g>
+            <text x="252" y="36" text-anchor="middle" font-family="Caveat, cursive" font-size="14" fill="#9a4a2a">loop body / index ✗</text>
+            <g filter="url(#sk-soft)" stroke="#8a6aaa" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.55" fill="none" stroke-linecap="round">
+              <line x1="170" y1="48" x2="216" y2="68"/>
+              <line x1="216" y1="68" x2="252" y2="46"/>
+            </g>
+            <text x="183" y="200" font-family="Caveat, cursive" font-size="14" fill="#5a4070">concept: what the loop iterates over</text>
+          </g>
+
+          <!-- SITUATED overlay: ecological network (sketchy organic) -->
+          <g class="lens-overlay ov-situated" id="ov-situated">
+            <g filter="url(#sk)" fill="none" stroke="#6a8a5a" stroke-width="1.3" class="ov-line-dashed" stroke-linecap="round">
+              <path d="M210 138 Q145 145 80 156"/>
+              <path d="M210 138 Q275 145 340 156"/>
+              <path d="M210 138 Q300 110 395 86"/>
+              <path d="M210 138 Q130 110 49 90"/>
+            </g>
+            <g fill="#6a8a5a">
+              <circle cx="80" cy="156" r="3.5" class="ov-pulse" opacity="0.9"/>
+              <circle cx="340" cy="156" r="3.5" class="ov-pulse" opacity="0.9"/>
+              <circle cx="395" cy="86" r="3.5" class="ov-pulse" opacity="0.9"/>
+              <circle cx="49" cy="90" r="3.5" class="ov-pulse" opacity="0.9"/>
+              <circle cx="210" cy="138" r="4.5"/>
+              <circle cx="210" cy="138" r="9" fill="#6a8a5a" opacity="0.18"/>
+            </g>
+            <g font-family="Caveat, cursive" font-size="13" fill="#3a5430">
+              <text x="138" y="150">lecture · unwatched</text>
+              <text x="278" y="150">peer · unmsged</text>
+              <text x="335" y="108" text-anchor="end">leader · unasked</text>
+              <text x="125" y="108">forum · unposted</text>
+            </g>
+          </g>
+
+          <!-- SOCIO-CULTURAL overlay: critic's marginalia (italic + sketchy boundaries) -->
+          <g class="lens-overlay ov-sociocultural" id="ov-sociocultural">
+            <g filter="url(#sk-soft)" fill="none" stroke="#a05a6a" stroke-width="0.7" stroke-dasharray="2 3" opacity="0.5">
+              <rect x="20" y="135" width="380" height="105" rx="2"/>
+              <ellipse cx="210" cy="130" rx="36" ry="44" stroke-dasharray="1.5 2.5" opacity="0.65"/>
+            </g>
+            <g fill="#a05a6a" font-family="Caveat, cursive">
+              <text x="14" y="36" font-size="15" opacity="0.92">whose CS? Stanford 1981 ?</text>
+              <text x="14" y="222" font-size="14" opacity="0.92">"tab-cycling" reads as lack of focus</text>
+              <text x="14" y="238" font-size="12" opacity="0.65">↑ a culturally specific norm</text>
+              <text x="406" y="222" text-anchor="end" font-size="14" opacity="0.92">whose imagined learner?</text>
+              <text x="406" y="238" text-anchor="end" font-size="12" opacity="0.65">CS1 → an 18-yr-old freshman, often</text>
+              <text x="14" y="138" font-size="12" opacity="0.75">↑ who posts in the forum, who lurks?</text>
+              <text x="210" y="272" text-anchor="middle" font-size="13" opacity="0.85">positioned subject · entering a culture</text>
+            </g>
+          </g>
+          </g><!-- /case: alex -->
+
+          <!-- ═══════════ CASE: MAYA (10 y/o, ITS in classroom) ═══════════ -->
+          <g class="case-group" data-case="maya">
+            <!-- classroom floor + light atmospheric wash -->
+            <ellipse cx="210" cy="160" rx="240" ry="160" fill="url(#ww-wood)" opacity="0.4"/>
+            <g filter="url(#sk-soft)">
+              <line x1="0" y1="240" x2="420" y2="240" stroke="#9a8c76" stroke-width="1.1" stroke-linecap="round"/>
+            </g>
+            <text x="14" y="22" class="scene-label">CLASSROOM · TUESDAY 10:14AM</text>
+
+            <!-- MAYA at her desk -->
+            <g class="scene-el" data-el="maya" tabindex="0">
+              <ellipse cx="170" cy="118" rx="20" ry="20" fill="url(#ww-skin)"/>
+              <ellipse cx="170" cy="183" rx="60" ry="13" fill="url(#ww-wood)"/>
+              <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                <!-- desk -->
+                <path d="M125 182 L215 182 L215 188 L125 188 Z"/>
+                <!-- head, smaller (younger) -->
+                <circle cx="170" cy="120" r="12"/>
+                <!-- hair tufts -->
+                <path d="M160 109 q4 -8 12 -4" stroke-width="1.1"/>
+                <path d="M175 109 q3 -6 9 -3" stroke-width="1.1"/>
+                <!-- torso -->
+                <path d="M157 152 Q170 138 183 152 L183 180 L157 180 Z"/>
+              </g>
+              <text x="170" y="208" text-anchor="middle" class="scene-label">MAYA</text>
+            </g>
+
+            <!-- TABLET running MathBuddy -->
+            <g class="scene-el" data-el="tablet" tabindex="0">
+              <ellipse cx="170" cy="170" rx="34" ry="10" fill="url(#ww-screen)"/>
+              <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="140" y="158" width="60" height="22" rx="3"/>
+              </g>
+              <text x="170" y="168" text-anchor="middle" font-family="JetBrains Mono, Menlo, monospace" font-size="6" fill="#cfe0ed">3/4 = ?/8</text>
+              <text x="170" y="176" text-anchor="middle" font-family="JetBrains Mono, Menlo, monospace" font-size="4.5" fill="#9ab0c0">hint 8/12</text>
+            </g>
+
+            <!-- WORKSHEET with her drawing in the margin -->
+            <g class="scene-el" data-el="worksheet" tabindex="0">
+              <ellipse cx="240" cy="180" rx="22" ry="8" fill="url(#ww-skin)" opacity="0.55"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#9a8c76" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="222" y="170" width="38" height="18" rx="1"/>
+                <line x1="226" y1="176" x2="246" y2="176" opacity="0.6"/>
+                <line x1="226" y1="180" x2="244" y2="180" opacity="0.6"/>
+              </g>
+              <!-- the little drawing in the margin (sketchy horse-ish) -->
+              <g filter="url(#sk)" fill="none" stroke="#5a4d3f" stroke-width="0.9" stroke-linecap="round">
+                <path d="M250 174 q3 -2 5 0 q1 2 0 4 q-3 1 -5 -1 z"/>
+                <line x1="252" y1="178" x2="252" y2="183"/>
+                <line x1="254" y1="178" x2="254" y2="183"/>
+              </g>
+              <text x="240" y="200" text-anchor="middle" class="scene-label">WORKSHEET + DOODLE</text>
+            </g>
+
+            <!-- FRIEND 1 next to her, whispering to friend 2 -->
+            <g class="scene-el" data-el="friend1" tabindex="0">
+              <ellipse cx="80" cy="160" rx="17" ry="17" fill="url(#ww-skin)" opacity="0.85"/>
+              <ellipse cx="80" cy="195" rx="36" ry="10" fill="url(#ww-wood)"/>
+              <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M52 195 L108 195 L108 199 L52 199 Z"/>
+                <!-- worksheet -->
+                <rect x="64" y="182" width="32" height="14" rx="1" opacity="0.6"/>
+                <!-- head, turned toward friend2 -->
+                <circle cx="80" cy="160" r="10"/>
+                <!-- pigtail / hair -->
+                <path d="M70 156 q-3 4 -2 8" stroke-width="1"/>
+                <path d="M90 156 q3 4 2 8" stroke-width="1"/>
+                <!-- torso, leaning right -->
+                <path d="M70 184 Q82 173 92 182 L92 197 L72 197 Z"/>
+              </g>
+              <!-- whisper hint -->
+              <g filter="url(#sk-soft)" stroke="#9a8c76" stroke-width="0.6" fill="none" opacity="0.7">
+                <path d="M92 152 q6 -2 14 0" stroke-dasharray="2 2"/>
+              </g>
+              <text x="80" y="218" text-anchor="middle" class="scene-label">FRIEND · WHISPERING</text>
+            </g>
+
+            <!-- FRIEND 2 -->
+            <g class="scene-el" data-el="friend2" tabindex="0">
+              <ellipse cx="118" cy="158" rx="14" ry="14" fill="url(#ww-skin)" opacity="0.8"/>
+              <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="118" cy="158" r="9"/>
+                <path d="M110 178 Q118 170 126 178 L126 192 L110 192 Z"/>
+              </g>
+            </g>
+
+            <!-- TEACHER offstage at the front, with their own tablet (the dashboard) -->
+            <g class="scene-el" data-el="teacher" tabindex="0">
+              <ellipse cx="380" cy="100" rx="14" ry="16" fill="url(#ww-skin)" opacity="0.6"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#5a4d3f" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="380" cy="96" r="8"/>
+                <path d="M372 112 Q380 102 388 112 L388 132 L372 132 Z"/>
+              </g>
+              <text x="380" y="148" text-anchor="middle" class="scene-label" opacity="0.7">TEACHER · OFFSTAGE</text>
+            </g>
+
+            <!-- ITS DASHBOARD (showing on teacher's screen or projected) -->
+            <g class="scene-el" data-el="dashboard" tabindex="0">
+              <ellipse cx="365" cy="64" rx="50" ry="20" fill="url(#ww-metrics)"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#5a6a7a" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="320" y="50" width="90" height="32" rx="2"/>
+              </g>
+              <text x="326" y="62" font-family="JetBrains Mono, Menlo, monospace" font-size="6.5" fill="#2a3a4a">mastery: 0.41</text>
+              <text x="326" y="71" font-family="JetBrains Mono, Menlo, monospace" font-size="6.5" fill="#2a3a4a">days on item: 19</text>
+              <text x="326" y="80" font-family="JetBrains Mono, Menlo, monospace" font-size="6" fill="#9a4a2a" font-style="italic">14 off-task · flagged</text>
+            </g>
+
+            <!-- inferred state: "drifting" or "creating" -->
+            <g class="scene-el" data-el="state" tabindex="0">
+              <ellipse cx="200" cy="92" rx="32" ry="18" fill="url(#ww-violet)"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#8a6aaa" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="200" cy="92" rx="24" ry="14" stroke-dasharray="2 2"/>
+              </g>
+              <text x="200" y="96" text-anchor="middle" font-family="Caveat, cursive" font-weight="500" font-size="13" fill="#5a4070">drifting</text>
+              <text x="200" y="72" text-anchor="middle" class="scene-label" opacity="0.7">INFERRED</text>
+            </g>
+
+            <!-- ═══ MAYA OVERLAYS ═══ -->
+            <!-- BEHAVIORIST -->
+            <g class="lens-overlay ov-behaviorist" id="ov-maya-behaviorist">
+              <g stroke="#6a7a8a" stroke-width="0.3" opacity="0.16">
+                <line x1="0" y1="60" x2="420" y2="60"/>
+                <line x1="0" y1="120" x2="420" y2="120"/>
+                <line x1="0" y1="180" x2="420" y2="180"/>
+                <line x1="80" y1="0" x2="80" y2="320"/>
+                <line x1="170" y1="0" x2="170" y2="320"/>
+                <line x1="260" y1="0" x2="260" y2="320"/>
+                <line x1="350" y1="0" x2="350" y2="320"/>
+              </g>
+              <g transform="translate(126, 99)">
+                <rect x="0" y="0" width="44" height="13" fill="#eef0f2" stroke="#6a7a8a" stroke-width="0.5"/>
+                <text x="22" y="9" text-anchor="middle" class="ov-data" fill="#3a4148">LEARNER #4417</text>
+              </g>
+              <text x="402" y="50" text-anchor="end" class="ov-label" fill="#9a4a2a">▼ below target</text>
+              <g transform="translate(204, 188)">
+                <rect x="0" y="0" width="60" height="10" fill="#eef0f2" stroke="#6a7a8a" stroke-width="0.5"/>
+                <text x="30" y="7.5" text-anchor="middle" class="ov-data" fill="#9a4a2a">OFF-TASK · LOG</text>
+              </g>
+              <g transform="translate(240, 100)">
+                <text x="0" y="0" class="ov-label" fill="#3a4148">mastery</text>
+                <rect x="0" y="3" width="120" height="4" fill="#d8ddd9"/>
+                <rect x="0" y="3" width="49" height="4" fill="#6a7a8a"/>
+                <line x1="96" y1="0" x2="96" y2="9" stroke="#9a4a2a" stroke-width="1"/>
+              </g>
+            </g>
+            <!-- COGNITIVE -->
+            <g class="lens-overlay ov-cognitive" id="ov-maya-cognitive">
+              <g filter="url(#sk-soft)" fill="none" stroke="#8a6aaa" stroke-width="1.1" stroke-dasharray="3 2.5" opacity="0.85" stroke-linecap="round">
+                <ellipse cx="170" cy="56" rx="98" ry="42"/>
+                <circle cx="148" cy="100" r="3"/>
+                <circle cx="142" cy="110" r="2"/>
+              </g>
+              <g fill="#8a6aaa">
+                <circle cx="130" cy="50" r="3.5"/>
+                <circle cx="180" cy="68" r="3.5"/>
+              </g>
+              <g class="ov-pulse">
+                <circle cx="220" cy="48" r="5" fill="none" stroke="#9a4a2a" stroke-width="1.4" stroke-dasharray="2 2"/>
+              </g>
+              <g font-family="Caveat, cursive" font-size="14" fill="#5a4070">
+                <text x="130" y="42" text-anchor="middle">counting halves ✓</text>
+                <text x="180" y="84" text-anchor="middle">"4 vs 8" ✓</text>
+              </g>
+              <text x="220" y="38" text-anchor="middle" font-family="Caveat, cursive" font-size="14" fill="#9a4a2a">ratio vs partition ✗</text>
+              <g filter="url(#sk-soft)" stroke="#8a6aaa" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.55" fill="none" stroke-linecap="round">
+                <line x1="130" y1="50" x2="180" y2="68"/>
+                <line x1="180" y1="68" x2="220" y2="48"/>
+              </g>
+              <text x="142" y="205" font-family="Caveat, cursive" font-size="14" fill="#5a4070">concept: equivalent fractions</text>
+            </g>
+            <!-- SITUATED -->
+            <g class="lens-overlay ov-situated" id="ov-maya-situated">
+              <g filter="url(#sk)" fill="none" stroke="#6a8a5a" stroke-width="1.3" class="ov-line-dashed" stroke-linecap="round">
+                <path d="M170 138 Q125 145 80 156"/>
+                <path d="M170 138 Q145 145 118 154"/>
+                <path d="M170 138 Q275 115 380 100"/>
+              </g>
+              <g fill="#6a8a5a">
+                <circle cx="80" cy="156" r="3.5" class="ov-pulse" opacity="0.9"/>
+                <circle cx="118" cy="154" r="3" class="ov-pulse" opacity="0.9"/>
+                <circle cx="380" cy="100" r="3.5" class="ov-pulse" opacity="0.85"/>
+                <circle cx="170" cy="138" r="4.5"/>
+                <circle cx="170" cy="138" r="9" fill="#6a8a5a" opacity="0.18"/>
+              </g>
+              <g font-family="Caveat, cursive" font-size="13" fill="#3a5430">
+                <text x="100" y="146">friends who could explain it</text>
+                <text x="290" y="118">teacher · offstage</text>
+              </g>
+            </g>
+            <!-- SOCIO-CULTURAL -->
+            <g class="lens-overlay ov-sociocultural" id="ov-maya-sociocultural">
+              <g filter="url(#sk-soft)" fill="none" stroke="#a05a6a" stroke-width="0.7" stroke-dasharray="2 3" opacity="0.5">
+                <rect x="20" y="135" width="380" height="105" rx="2"/>
+                <ellipse cx="170" cy="135" rx="32" ry="40" stroke-dasharray="1.5 2.5" opacity="0.65"/>
+                <ellipse cx="240" cy="180" rx="26" ry="14" stroke-dasharray="1.5 2.5" opacity="0.75"/>
+              </g>
+              <g fill="#a05a6a" font-family="Caveat, cursive">
+                <text x="14" y="36" font-size="15" opacity="0.92">whose definition of "good at fractions"?</text>
+                <text x="14" y="222" font-size="14" opacity="0.92">"drawing in the margin" = transgression here, art elsewhere</text>
+                <text x="406" y="222" text-anchor="end" font-size="14" opacity="0.92">what is fractions FOR, for Maya?</text>
+                <text x="406" y="238" text-anchor="end" font-size="12" opacity="0.7">recipes? rent? a test score?</text>
+                <text x="280" y="208" text-anchor="middle" font-size="12" opacity="0.75">cultural object →</text>
+                <text x="170" y="272" text-anchor="middle" font-size="13" opacity="0.85">positioned subject</text>
+              </g>
+            </g>
+          </g><!-- /case: maya -->
+
+          <!-- ═══════════ CASE: DEVI (community music jam) ═══════════ -->
+          <g class="case-group" data-case="devi">
+            <!-- room atmospheric wash (warm, dim) -->
+            <ellipse cx="210" cy="170" rx="260" ry="170" fill="url(#ww-wood)" opacity="0.6"/>
+            <g filter="url(#sk-soft)">
+              <line x1="0" y1="248" x2="420" y2="248" stroke="#9a8c76" stroke-width="1.1" stroke-linecap="round"/>
+            </g>
+            <text x="14" y="22" class="scene-label">JAM CIRCLE · SUNDAY 7PM</text>
+
+            <!-- The circle: 7 figures around a low coffee table -->
+            <!-- DEVI (front, learner) -->
+            <g class="scene-el" data-el="devi" tabindex="0">
+              <ellipse cx="210" cy="200" rx="20" ry="20" fill="url(#ww-skin)"/>
+              <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="210" cy="200" r="13"/>
+                <path d="M195 226 Q210 214 225 226 L225 244 L195 244 Z"/>
+              </g>
+              <text x="210" y="262" text-anchor="middle" class="scene-label">DEVI</text>
+            </g>
+
+            <!-- DEVI'S GUITAR -->
+            <g class="scene-el" data-el="guitar" tabindex="0">
+              <ellipse cx="210" cy="240" rx="28" ry="9" fill="url(#ww-wood)"/>
+              <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M186 240 q24 -12 48 0 q-2 8 -10 9 q-12 1 -28 0 q-8 -1 -10 -9 z"/>
+                <line x1="234" y1="240" x2="266" y2="232" stroke-width="1.6"/>
+              </g>
+              <g stroke="#9a8c76" stroke-width="0.4">
+                <line x1="234" y1="241" x2="266" y2="233" opacity="0.6"/>
+              </g>
+            </g>
+
+            <!-- MARCUS (the lead player, more experienced) -->
+            <g class="scene-el" data-el="marcus" tabindex="0">
+              <ellipse cx="120" cy="160" rx="18" ry="18" fill="url(#ww-skin)" opacity="0.92"/>
+              <g filter="url(#sk)" fill="none" stroke="#2a221c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="120" cy="160" r="12"/>
+                <path d="M114 152 q-3 -4 -1 -8 q3 -3 7 0" stroke-width="1.1" opacity="0.55"/>
+                <path d="M108 184 Q120 174 132 184 L132 204 L108 204 Z"/>
+                <!-- guitar in hand -->
+                <path d="M128 198 q14 -10 26 -2 q-2 8 -8 10 q-10 2 -16 -3 z"/>
+              </g>
+              <text x="120" y="222" text-anchor="middle" class="scene-label">MARCUS · LEAD</text>
+            </g>
+
+            <!-- JAMMERS group (4 others around the circle, simplified) -->
+            <g class="scene-el" data-el="jammers" tabindex="0">
+              <!-- jammer A (back left) -->
+              <ellipse cx="60" cy="130" rx="13" ry="13" fill="url(#ww-skin)" opacity="0.78"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#2a221c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="60" cy="130" r="9"/>
+                <path d="M52 146 Q60 138 68 146 L68 162 L52 162 Z"/>
+              </g>
+              <!-- jammer B (back center-left) -->
+              <ellipse cx="180" cy="110" rx="12" ry="12" fill="url(#ww-skin)" opacity="0.78"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#2a221c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="180" cy="110" r="8"/>
+                <path d="M173 124 Q180 117 187 124 L187 138 L173 138 Z"/>
+              </g>
+              <!-- jammer C (back center-right) -->
+              <ellipse cx="244" cy="108" rx="12" ry="12" fill="url(#ww-skin)" opacity="0.78"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#2a221c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="244" cy="108" r="8"/>
+                <path d="M237 122 Q244 115 251 122 L251 136 L237 136 Z"/>
+              </g>
+              <!-- jammer D (back right, with harmonica suggestion) -->
+              <ellipse cx="316" cy="130" rx="13" ry="13" fill="url(#ww-skin)" opacity="0.78"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#2a221c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="316" cy="130" r="9"/>
+                <path d="M308 146 Q316 138 324 146 L324 162 L308 162 Z"/>
+                <!-- harmonica in hand -->
+                <rect x="324" y="128" width="9" height="3" rx="0.5"/>
+              </g>
+              <text x="190" y="92" text-anchor="middle" class="scene-label">FIVE OTHER PLAYERS</text>
+            </g>
+
+            <!-- BARTENDER (offstage, in the corner) -->
+            <g class="scene-el" data-el="bartender" tabindex="0">
+              <ellipse cx="390" cy="200" rx="11" ry="12" fill="url(#ww-skin)" opacity="0.55"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#5a4d3f" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="390" cy="198" r="7"/>
+                <path d="M384 212 Q390 204 396 212 L396 230 L384 230 Z"/>
+              </g>
+              <text x="390" y="244" text-anchor="middle" class="scene-label" opacity="0.65">BARTENDER</text>
+            </g>
+
+            <!-- CHORDSHEET (a small worn paper on the coffee table) -->
+            <g class="scene-el" data-el="chordsheet" tabindex="0">
+              <ellipse cx="210" cy="290" rx="40" ry="10" fill="url(#ww-wood)" opacity="0.55"/>
+              <g filter="url(#sk)" fill="none" stroke="#9a8c76" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M182 282 L238 280 L240 296 L184 298 Z"/>
+                <line x1="190" y1="287" x2="232" y2="286" opacity="0.6"/>
+                <line x1="190" y1="291" x2="226" y2="290" opacity="0.6"/>
+              </g>
+              <text x="210" y="312" text-anchor="middle" class="scene-label">CHORDSHEET · SHARED</text>
+            </g>
+
+            <!-- TIP JAR (small, in the foreground) -->
+            <g class="scene-el" data-el="tipjar" tabindex="0">
+              <ellipse cx="80" cy="285" rx="14" ry="6" fill="url(#ww-screen)" opacity="0.4"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#5a4d3f" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M70 274 L70 290 q0 4 10 4 q10 0 10 -4 L90 274 z"/>
+                <ellipse cx="80" cy="274" rx="10" ry="3"/>
+              </g>
+              <text x="80" y="306" text-anchor="middle" class="scene-label">TIPS · $3</text>
+            </g>
+
+            <!-- INFERRED STATE: "in the pocket" or "watching, shy" -->
+            <g class="scene-el" data-el="state" tabindex="0">
+              <ellipse cx="280" cy="200" rx="32" ry="18" fill="url(#ww-violet)"/>
+              <g filter="url(#sk-soft)" fill="none" stroke="#8a6aaa" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="280" cy="200" rx="24" ry="14" stroke-dasharray="2 2"/>
+              </g>
+              <text x="280" y="204" text-anchor="middle" font-family="Caveat, cursive" font-weight="500" font-size="13" fill="#5a4070">watching closely</text>
+              <text x="280" y="180" text-anchor="middle" class="scene-label" opacity="0.7">INFERRED</text>
+            </g>
+
+            <!-- ═══ DEVI OVERLAYS ═══ -->
+            <!-- BEHAVIORIST — note: this lens STRUGGLES here. The overlay shows the system trying and failing. -->
+            <g class="lens-overlay ov-behaviorist" id="ov-devi-behaviorist">
+              <g stroke="#6a7a8a" stroke-width="0.3" opacity="0.13">
+                <line x1="0" y1="60" x2="420" y2="60"/>
+                <line x1="0" y1="120" x2="420" y2="120"/>
+                <line x1="0" y1="180" x2="420" y2="180"/>
+                <line x1="80" y1="0" x2="80" y2="320"/>
+                <line x1="170" y1="0" x2="170" y2="320"/>
+                <line x1="260" y1="0" x2="260" y2="320"/>
+                <line x1="350" y1="0" x2="350" y2="320"/>
+              </g>
+              <g transform="translate(166, 170)">
+                <rect x="0" y="0" width="88" height="14" fill="#eef0f2" stroke="#6a7a8a" stroke-width="0.5"/>
+                <text x="44" y="9" text-anchor="middle" class="ov-data" fill="#9a4a2a">NO RUBRIC FOUND</text>
+              </g>
+              <g transform="translate(76, 268)">
+                <rect x="0" y="0" width="80" height="14" fill="#eef0f2" stroke="#6a7a8a" stroke-width="0.5" stroke-dasharray="2 2"/>
+                <text x="40" y="9" text-anchor="middle" class="ov-data" fill="#5a6a7a">$3 ≠ MASTERY</text>
+              </g>
+              <text x="402" y="50" text-anchor="end" class="ov-label" fill="#9a4a2a">▼ no data signal</text>
+              <text x="14" y="50" class="ov-italic" fill="#5a6a7a" font-style="italic">(instrument cannot operate here)</text>
+            </g>
+            <!-- COGNITIVE — partial reading; some schema-building visible but the cognition isn't only inside Devi -->
+            <g class="lens-overlay ov-cognitive" id="ov-devi-cognitive">
+              <g filter="url(#sk-soft)" fill="none" stroke="#8a6aaa" stroke-width="1.1" stroke-dasharray="3 2.5" opacity="0.85" stroke-linecap="round">
+                <ellipse cx="210" cy="120" rx="98" ry="42"/>
+                <circle cx="195" cy="170" r="3"/>
+                <circle cx="190" cy="180" r="2"/>
+              </g>
+              <g fill="#8a6aaa">
+                <circle cx="170" cy="110" r="3.5"/>
+                <circle cx="220" cy="128" r="3.5"/>
+              </g>
+              <g class="ov-pulse">
+                <circle cx="252" cy="108" r="5" fill="none" stroke="#9a4a2a" stroke-width="1.4" stroke-dasharray="2 2"/>
+              </g>
+              <g font-family="Caveat, cursive" font-size="14" fill="#5a4070">
+                <text x="170" y="100" text-anchor="middle">G chord ✓</text>
+                <text x="220" y="144" text-anchor="middle">C chord ✓</text>
+              </g>
+              <text x="252" y="98" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="10" fill="#9a4a2a">D7 transition ✗</text>
+            </g>
+            <!-- SITUATED — its home territory. Full network alive. -->
+            <g class="lens-overlay ov-situated" id="ov-devi-situated">
+              <g filter="url(#sk)" fill="none" stroke="#6a8a5a" stroke-width="1.3" stroke-linecap="round" opacity="0.9">
+                <path d="M210 200 Q160 180 120 160"/>
+                <path d="M210 200 Q140 165 60 130"/>
+                <path d="M210 200 Q195 155 180 110"/>
+                <path d="M210 200 Q230 155 244 108"/>
+                <path d="M210 200 Q265 165 316 130"/>
+                <path d="M210 200 Q210 244 210 290"/>
+              </g>
+              <g fill="#6a8a5a">
+                <circle cx="120" cy="160" r="4" class="ov-pulse"/>
+                <circle cx="60" cy="130" r="3.5" class="ov-pulse"/>
+                <circle cx="180" cy="110" r="3.5" class="ov-pulse"/>
+                <circle cx="244" cy="108" r="3.5" class="ov-pulse"/>
+                <circle cx="316" cy="130" r="3.5" class="ov-pulse"/>
+                <circle cx="210" cy="290" r="3.5" class="ov-pulse"/>
+                <circle cx="210" cy="200" r="5"/>
+                <circle cx="210" cy="200" r="11" fill="#6a8a5a" opacity="0.2"/>
+              </g>
+              <g font-family="Caveat, cursive" font-size="13" fill="#3a5430">
+                <text x="160" y="186">modeling</text>
+                <text x="265" y="186">tune-as-object</text>
+                <text x="195" y="262" text-anchor="end">shared sheet</text>
+              </g>
+            </g>
+            <!-- SOCIO-CULTURAL — rich here. Whose tradition? -->
+            <g class="lens-overlay ov-sociocultural" id="ov-devi-sociocultural">
+              <g filter="url(#sk-soft)" fill="none" stroke="#a05a6a" stroke-width="0.7" stroke-dasharray="2 3" opacity="0.5">
+                <ellipse cx="200" cy="200" rx="180" ry="100"/>
+                <ellipse cx="210" cy="200" rx="32" ry="40" stroke-dasharray="1.5 2.5" opacity="0.65"/>
+              </g>
+              <g fill="#a05a6a" font-family="Caveat, cursive">
+                <text x="14" y="36" font-size="15" opacity="0.92">whose tradition is this jam in?</text>
+                <text x="14" y="52" font-size="12" opacity="0.7">folk · blues · Appalachian · Latinx · ?</text>
+                <text x="14" y="222" font-size="14" opacity="0.92">who gets the solo? who waits?</text>
+                <text x="406" y="222" text-anchor="end" font-size="14" opacity="0.92">"open mic" — open to whom?</text>
+                <text x="406" y="238" text-anchor="end" font-size="12" opacity="0.7">implicit gatekeeping is real</text>
+                <text x="210" y="318" text-anchor="middle" font-size="13" opacity="0.85">positioned subject · entering a practice</text>
+              </g>
+            </g>
+          </g><!-- /case: devi -->
+      </div>
+
+      <aside class="lens-sidebar" id="lens-sidebar" aria-live="polite">
+        <span class="lens-tag" id="sb-tag">no lens equipped</span>
+        <h3 id="sb-title">Pick a lens to begin</h3>
+        <p class="quiet" id="sb-intro">Each lens is a different perspective on what learning is, and what counts as evidence of it. Each one will see Alex's situation differently — sometimes incompatibly. Try at least two before continuing.</p>
+        <div id="sb-content" style="display:none;">
+          <div class="section">
+            <h4>Foregrounded</h4>
+            <ul id="sb-fore"></ul>
+          </div>
+          <div class="section">
+            <h4>Treated as noise</h4>
+            <ul id="sb-noise"></ul>
+          </div>
+          <div class="section">
+            <h4>Would recommend</h4>
+            <p class="recommend" id="sb-recommend"></p>
+          </div>
+          <div class="section">
+            <h4>Cannot see</h4>
+            <p class="cant-see" id="sb-cantsee"></p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <p class="lens-hint" id="lens-progress">Lenses tried: 0 of 4. Try at least two to continue.</p>
+
+    <div class="actions">
+      <button id="b1-next" data-next disabled>continue</button>
+    </div>
+  </section>
+
+  <!-- ───── BEAT 2: Catalogue + generate ───── -->
+  <section class="beat" data-beat="2">
+    <p class="kicker">Beat 2 · The catalogue of design patterns</p>
+    <h1>How do learning systems sort across the four perspectives?</h1>
+    <p class="lede">Real design patterns — tutoring systems, lectures, apprenticeships, communities of practice — each foreground some perspectives and treat others as noise. Click each pinned pattern to see its profile. Then add one from your own life.</p>
+
+    <div class="map-wrap">
+      <svg class="map-svg" id="map2" viewBox="0 0 600 460" xmlns="http://www.w3.org/2000/svg" aria-label="Map of design patterns across four perspectives">
+        <!-- regions -->
+        <ellipse class="map-region behaviorist" cx="160" cy="340" rx="130" ry="90"/>
+        <ellipse class="map-region cognitive" cx="160" cy="130" rx="130" ry="90"/>
+        <ellipse class="map-region situated" cx="440" cy="340" rx="130" ry="90"/>
+        <ellipse class="map-region sociocultural" cx="440" cy="130" rx="130" ry="90"/>
+
+        <!-- region labels -->
+        <text x="160" y="338" text-anchor="middle" class="region-label">Behaviorist</text>
+        <text x="160" y="128" text-anchor="middle" class="region-label">Cognitive</text>
+        <text x="440" y="338" text-anchor="middle" class="region-label">Situated/Distributed</text>
+        <text x="440" y="128" text-anchor="middle" class="region-label">Socio-cultural</text>
+
+        <!-- axes -->
+        <line class="axis-line" x1="40" y1="230" x2="560" y2="230"/>
+        <line class="axis-line" x1="300" y1="40" x2="300" y2="420"/>
+        <text x="46" y="446" class="axis-label">individual</text>
+        <text x="554" y="446" text-anchor="end" class="axis-label">system / collective</text>
+        <text x="310" y="48" class="axis-label" transform="rotate(-90 310 48)" text-anchor="end" style="transform-origin: 310px 48px;">observable performance ← evidence → inferred meaning</text>
+
+        <!-- patterns will be injected here -->
+        <g id="patterns"></g>
+        <g id="user-patterns"></g>
+      </svg>
+      <div class="pattern-card" id="pcard"></div>
+    </div>
+
+    <p class="lens-hint" id="cat-progress">Click any pattern to inspect. Then add one of your own.</p>
+
+    <div class="actions">
+      <button id="add-pattern-btn">+ add a pattern from your life</button>
+      <button id="b2-next" data-next class="primary">continue</button>
+    </div>
+  </section>
+
+  <!-- ───── BEAT 3: Mapping / positionality ───── -->
+  <section class="beat" data-beat="3">
+    <p class="kicker">Beat 3 · Place yourself</p>
+    <h1>Where do you stand on the same map?</h1>
+    <p class="lede">Now place three personal markers. There are no right answers. The pinned patterns from the last beat are faintly visible for reference.</p>
+
+    <div class="map-wrap">
+      <svg class="map-svg" id="map3" viewBox="0 0 600 460" xmlns="http://www.w3.org/2000/svg" aria-label="Personal positionality map">
+        <ellipse class="map-region behaviorist" cx="160" cy="340" rx="130" ry="90"/>
+        <ellipse class="map-region cognitive" cx="160" cy="130" rx="130" ry="90"/>
+        <ellipse class="map-region situated" cx="440" cy="340" rx="130" ry="90"/>
+        <ellipse class="map-region sociocultural" cx="440" cy="130" rx="130" ry="90"/>
+        <text x="160" y="338" text-anchor="middle" class="region-label">Behaviorist</text>
+        <text x="160" y="128" text-anchor="middle" class="region-label">Cognitive</text>
+        <text x="440" y="338" text-anchor="middle" class="region-label">Situated/Distributed</text>
+        <text x="440" y="128" text-anchor="middle" class="region-label">Socio-cultural</text>
+        <line class="axis-line" x1="40" y1="230" x2="560" y2="230"/>
+        <line class="axis-line" x1="300" y1="40" x2="300" y2="420"/>
+        <text x="46" y="446" class="axis-label">individual</text>
+        <text x="554" y="446" text-anchor="end" class="axis-label">system / collective</text>
+
+        <g id="map3-patterns" opacity="0.18"></g>
+        <g id="personal-markers"></g>
+      </svg>
+    </div>
+
+    <p class="lens-hint" id="pos-progress">Click the map to drop a marker for <strong id="pos-prompt">your design instinct</strong>.</p>
+
+    <label class="field" for="pos-note">When you've placed all three — what do you notice about your three points?</label>
+    <textarea id="pos-note" data-capture="answer3" rows="3"></textarea>
+
+    <div class="actions">
+      <button id="pos-reset">reset markers</button>
+      <button id="b3-next" data-next class="primary" disabled>continue</button>
+    </div>
+  </section>
+
+  <!-- ───── BEAT 4: Design-bench + reflection ───── -->
+  <section class="beat" data-beat="4">
+    <p class="kicker">Beat 4 · Design something</p>
+    <h1>Design a learning experience. Watch the lenses read what you build.</h1>
+    <p class="lede">Pick a context. Dial the variables. The dot on the map shows where your design lives. The lens-readings update live.</p>
+
+    <div class="bench-grid">
+      <div class="bench-controls">
+        <h3>Context</h3>
+        <div class="context-picker">
+          <label><input type="radio" name="ctx" value="kid-fractions" checked>A 10-year-old learning fractions</label>
+          <label><input type="radio" name="ctx" value="junior-dev">A junior developer learning to debug</label>
+          <label><input type="radio" name="ctx" value="adult-language">An adult learning a language as a hobby</label>
+          <label><input type="radio" name="ctx" value="grad-methods">A grad student learning research methods</label>
+        </div>
+
+        <h3>Variables</h3>
+        <div class="slider-row">
+          <div class="s-label"><span class="s-name">Directionality</span><span data-display="s-direction">50</span></div>
+          <input type="range" min="0" max="100" value="50" data-slider="direction">
+          <div class="s-ends"><span>emergent</span><span>prescribed</span></div>
+        </div>
+        <div class="slider-row">
+          <div class="s-label"><span class="s-name">Scaffolding for novices</span><span data-display="s-scaffold">50</span></div>
+          <input type="range" min="0" max="100" value="50" data-slider="scaffold">
+          <div class="s-ends"><span>throw them in</span><span>explicit decomposition</span></div>
+        </div>
+        <div class="slider-row">
+          <div class="s-label"><span class="s-name">Group structure</span><span data-display="s-group">solo</span></div>
+          <input type="range" min="0" max="3" step="1" value="0" data-slider="group">
+          <div class="s-ends"><span>solo</span><span>community</span></div>
+        </div>
+        <div class="slider-row">
+          <div class="s-label"><span class="s-name">Tool reliance</span><span data-display="s-tool">50</span></div>
+          <input type="range" min="0" max="100" value="50" data-slider="tool">
+          <div class="s-ends"><span>human-only</span><span>AI / system</span></div>
+        </div>
+        <div class="slider-row">
+          <div class="s-label"><span class="s-name">Cultural specificity</span><span data-display="s-culture">50</span></div>
+          <input type="range" min="0" max="100" value="50" data-slider="culture">
+          <div class="s-ends"><span>universal</span><span>situated</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="map-wrap">
+          <svg class="map-svg" id="map4" viewBox="0 0 600 460" xmlns="http://www.w3.org/2000/svg">
+            <ellipse class="map-region behaviorist" cx="160" cy="340" rx="130" ry="90"/>
+            <ellipse class="map-region cognitive" cx="160" cy="130" rx="130" ry="90"/>
+            <ellipse class="map-region situated" cx="440" cy="340" rx="130" ry="90"/>
+            <ellipse class="map-region sociocultural" cx="440" cy="130" rx="130" ry="90"/>
+            <text x="160" y="338" text-anchor="middle" class="region-label">Behaviorist</text>
+            <text x="160" y="128" text-anchor="middle" class="region-label">Cognitive</text>
+            <text x="440" y="338" text-anchor="middle" class="region-label">Situated/Distributed</text>
+            <text x="440" y="128" text-anchor="middle" class="region-label">Socio-cultural</text>
+            <line class="axis-line" x1="40" y1="230" x2="560" y2="230"/>
+            <line class="axis-line" x1="300" y1="40" x2="300" y2="420"/>
+            <g id="map4-patterns" opacity="0.35"></g>
+            <circle id="design-dot" class="design-dot" cx="300" cy="230" r="10"/>
+          </svg>
+        </div>
+
+        <div class="bench-readings">
+          <h3>What each lens reads in your design</h3>
+          <div class="lens-reading" data-lens="behaviorist">
+            <span class="r-name">Behaviorist</span>
+            <span id="r-behaviorist">—</span>
+          </div>
+          <div class="lens-reading" data-lens="cognitive">
+            <span class="r-name">Cognitive</span>
+            <span id="r-cognitive">—</span>
+          </div>
+          <div class="lens-reading" data-lens="situated">
+            <span class="r-name">Situated</span>
+            <span id="r-situated">—</span>
+          </div>
+          <div class="lens-reading" data-lens="sociocultural">
+            <span class="r-name">Socio-cultural</span>
+            <span id="r-sociocultural">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Commit your design</h2>
+    <label class="field" for="tradeoff">Name the trade-off you accepted.</label>
+    <textarea id="tradeoff" data-capture="tradeoff" rows="2"></textarea>
+    <label class="field" for="failure">Predict what failure mode the un-foregrounded lenses would flag.</label>
+    <textarea id="failure" data-capture="failure" rows="2"></textarea>
+
+    <h2>Now look back at Alex.</h2>
+    <div class="recall-block">
+      <div class="r-label">When you first met Alex, you wrote:</div>
+      <div class="r-text" id="recall-answer1"></div>
+    </div>
+    <label class="field" for="answer5">Knowing what you know now, what does Alex need?</label>
+    <textarea id="answer5" data-capture="answer5" rows="3"></textarea>
+
+    <div class="actions">
+      <button class="primary" data-next>done</button>
+    </div>
+
+    <div class="credit-card">
+      A project by Vishal and Yoyo for EDUC 432 (Designing Explorable Explanations) and Stat 292 (Statistical Models of Language and Text) at Stanford. Spring 2026. Window, not stage.
+    </div>
+  </section>
+
+  <!-- ───── END ───── -->
+  <section class="beat" data-beat="5">
+    <p class="kicker">End</p>
+    <h1>Thank you.</h1>
+    <p class="lede">That's the explorable. You read one situation through four perspectives, mapped how design patterns cluster, placed yourself on the same field, and committed to a design with a named trade-off.</p>
+    <p class="quiet">No single perspective is correct. Every choice elides something a different lens would call essential — including your own.</p>
+    <p class="small-note" id="drift-note">Your two answers about Alex are stored in session. Open the console and run <code>lensSession</code> to inspect.</p>
+    <div class="actions">
+      <button data-restart>read it again</button>
+      <button class="quiet" data-log>log session to console</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- progress dots -->
+<div class="progress" id="progress">
+  <div class="dot" data-pdot="0" title="Cold open"></div>
+  <div class="dot" data-pdot="1" title="Lens-switcher"></div>
+  <div class="dot" data-pdot="2" title="Catalogue"></div>
+  <div class="dot" data-pdot="3" title="Positionality"></div>
+  <div class="dot" data-pdot="4" title="Design bench"></div>
+</div>
+
+<!-- floating lens cursor + annotation -->
+<svg class="lens-cursor" id="lens-cursor" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+<div class="annotation" id="annotation" role="tooltip"></div>
+
+<!-- add-pattern modal -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h3 id="modal-title">Add a pattern from your own life</h3>
+    <p class="quiet" style="font-size:13.5px;">Think of a learning setting you know — a class, a club, a tutor, a YouTube rabbit hole, a workplace ritual.</p>
+    <label class="field" for="pn-name">What do you call it?</label>
+    <input type="text" id="pn-name" placeholder="e.g. my undergrad lab" autocomplete="off">
+    <label class="field" for="pn-desc">One line about it.</label>
+    <input type="text" id="pn-desc" placeholder="e.g. weekly meetings + shared notebook" autocomplete="off">
+    <p style="margin-top:14px;font-size:13px;color:var(--ink-soft);">Which lenses does it foreground?</p>
+    <div class="lens-check">
+      <label class="behaviorist"><input type="checkbox" value="behaviorist">Behaviorist</label>
+      <label class="cognitive"><input type="checkbox" value="cognitive">Cognitive</label>
+      <label class="situated"><input type="checkbox" value="situated">Situated</label>
+      <label class="sociocultural"><input type="checkbox" value="sociocultural">Socio-cultural</label>
+    </div>
+    <p style="margin-top:14px;font-size:13px;color:var(--ink-soft);">Click on the map after closing to place it.</p>
+    <div class="actions">
+      <button class="primary" id="pn-save">save &amp; place</button>
+      <button class="quiet" id="pn-cancel">cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ═══════════ STATE ═══════════════════════════════════════
+  const session = {
+    answer1: '',          // cold-open
+    lensesTried: [],      // beat 1
+    userPatterns: [],     // beat 2 — added by user
+    personalMarkers: [],  // beat 3 — three coords
+    positionNote: '',     // beat 3 free text → answer3
+    designContext: 'kid-fractions',
+    sliders: { direction: 50, scaffold: 50, group: 0, tool: 50, culture: 50 },
+    designCoords: null,
+    tradeoff: '',
+    failure: '',
+    answer5: '',
+    startedAt: new Date().toISOString()
+  };
+  window.lensSession = session;
+
+  // ═══════════ NAVIGATION ═════════════════════════════════
+  const beats = Array.from(document.querySelectorAll('.beat'));
+  const progress = document.getElementById('progress');
+  let current = 0;
+
+  function showBeat(i) {
+    beats.forEach((b, idx) => b.classList.toggle('active', idx === i));
+    current = i;
+    updateProgress();
+    if (i === 4) document.getElementById('recall-answer1').textContent = session.answer1 || '(left blank)';
+    if (i === 4 && !session.answer1) document.getElementById('recall-answer1').classList.add('empty');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function updateProgress() {
+    progress.querySelectorAll('.dot').forEach((d, idx) => {
+      d.classList.toggle('active', idx === current);
+      d.classList.toggle('done', idx < current);
+    });
+    if (current >= 5) progress.style.display = 'none';
+    else progress.style.display = 'flex';
+  }
+  document.body.addEventListener('click', e => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    if (t.hasAttribute('data-next')) {
+      captureCurrent();
+      if (current < beats.length - 1) showBeat(current + 1);
+    }
+    if (t.hasAttribute('data-restart')) location.reload();
+    if (t.hasAttribute('data-log')) {
+      console.log('Lens session:', JSON.parse(JSON.stringify(session)));
+      t.textContent = 'logged — open the console';
+    }
+  });
+  function captureCurrent() {
+    beats[current].querySelectorAll('[data-capture]').forEach(el => {
+      session[el.dataset.capture] = el.value.trim();
+    });
+    if (current === 3) session.positionNote = session.answer3 || '';
+  }
+
+  // ═══════════ BEAT 1: CASES & LENSES ═════════════════════
+  // Each case is a different design form; the four lenses re-render each.
+  const CASES = {
+    alex: {
+      label: 'Alex',
+      sub: 'learning to code · home + online course',
+      lenses: {
+        behaviorist: {
+          label: 'Behaviorist',
+          color: 'var(--behaviorist)', bg: 'var(--behaviorist-bg)',
+          intro: 'Learning is observable behavior. The course platform is doing exactly what Skinner imagined — measuring sub-skills, serving the next item.',
+          foregrounded: [
+            'Karel 3 of 7. Exercise 3.2 · 8 attempts · timing out.',
+            'Skill: procedural reasoning — looping, conditionals.',
+            'Mastery threshold: one successful run. Not met.'
+          ],
+          noise: [
+            'The forum, the section leader, the peer thumbnail.',
+            'The lecture content, beyond what\'s tested.',
+            'Whether Alex feels okay asking for help.'
+          ],
+          recommend: 'Decomposed Karel sub-exercises with immediate corrective feedback. (The platform already does this.)',
+          cantSee: 'That this week\'s section is Tuesday, the forum has the answer, and Alex hasn\'t opened either.',
+          opacity: { alex: 1, karel: 1, lecture: 0.18, peer: 0.15, 'section-leader': 0.12, forum: 0.12, progress: 1, state: 0.25 },
+          els: {
+            alex: { label: 'subject', text: 'Learner #4417. Performance trace below target. Re-serve prerequisite content.' },
+            karel: { label: 'observable skill', text: 'A specific skill: write a program that moves the robot through this grid. Decompose into sub-skills, sequence them.' },
+            progress: { label: 'instrument', text: 'Karel 3/7 · Ex 3.2 attempt 8 · timing out. The mastery threshold is the dependent variable.' },
+            lecture: { label: 'noise', text: 'Outside the unit of analysis. Behavior happens at the keyboard, not in the video.' },
+            peer: { label: 'noise', text: 'Not part of the learner-system loop.' },
+            'section-leader': { label: 'noise', text: 'External to the learner-system loop.' },
+            forum: { label: 'noise', text: 'Social affordance. Outside the skill model.' },
+            state: { label: 'inference', text: '"Tab-cycling" is unobservable. We measure exercises completed.' }
+          }
+        },
+        cognitive: {
+          label: 'Cognitive',
+          color: 'var(--cognitive)', bg: 'var(--cognitive-bg)',
+          intro: 'Learning is the construction of mental structure. What schema is Alex trying to build, and where is the bridge missing?',
+          foregrounded: [
+            'Schema forming: if/else, for-loops, single statements.',
+            'Schema gap: what the loop iterates over · loop body vs. index.',
+            'The lecture is a worked-example source — sense-making is stuck at a conceptual leap.'
+          ],
+          noise: [
+            'The social side of the forum.',
+            'The cultural specificity of "what code is."'
+          ],
+          recommend: 'Re-watch the lecture segment on loops. CTA expert Karel solutions to make the loop-body schema visible.',
+          cantSee: 'That this exact conceptual gap is exactly what the section leader is paid to address — and Alex hasn\'t asked.',
+          opacity: { alex: 1, karel: 1, lecture: 1, peer: 0.22, 'section-leader': 0.3, forum: 0.25, progress: 0.4, state: 1 },
+          els: {
+            alex: { label: 'sense-making', text: 'Alex is actively building a schema for procedural thinking. Stuck means the bridge is missing.' },
+            karel: { label: 'concept-as-task', text: 'Karel exercises encode specific concepts: control flow, decomposition. The task assumes some schema while building another.' },
+            lecture: { label: 'worked example', text: 'The formal expert explanation. Re-watching the relevant 5 minutes might provide the missing bridge.' },
+            state: { label: 'diagnostic', text: '"Tab-cycling" = the schema isn\'t forming. Cognition is searching for input.' },
+            progress: { label: 'partial signal', text: '8 attempts is data; what matters is what each attempt assumed.' },
+            peer: { label: 'potential source', text: 'Another learner who could be a sense-making partner; cognition still happens inside Alex.' },
+            'section-leader': { label: 'potential source', text: 'An expert who could provide a worked example. Not part of the cognitive system itself.' },
+            forum: { label: 'partial source', text: 'A retrieval space for information; the learning still happens in the head.' }
+          }
+        },
+        situated: {
+          label: 'Situated / Distributed',
+          color: 'var(--situated)', bg: 'var(--situated-bg)',
+          intro: 'Learning happens across a system. This course is *designed* as a community — Alex is using only one piece of it.',
+          foregrounded: [
+            'Forum: active, full of peers asking about the same exercise — Alex hasn\'t posted.',
+            'Section leader: in office hours right now — Alex hasn\'t messaged.',
+            'Peer: another learner online, on the same exercise — Alex hasn\'t pinged.',
+            'The course\'s whole architecture assumes social cognition. Alex is solo-ing it.'
+          ],
+          noise: [
+            'Solo Karel completion as the unit of learning.',
+            '"Mastery" as if coding were a fixed thing one masters alone.'
+          ],
+          recommend: 'Post in the forum. DM the leader. Pair with the peer thumbnail. The course IS the practice — use it.',
+          cantSee: 'The specific Karel concept Alex needs (loop body? iteration index?).',
+          opacity: { alex: 1, karel: 0.7, lecture: 1, peer: 1, 'section-leader': 0.95, forum: 1, progress: 0.3, state: 0.65 },
+          els: {
+            alex: { label: 'one node', text: 'Alex is one node in a system that includes a forum, a leader, peers, lectures, exercises — currently using only the exercise.' },
+            karel: { label: 'isolating tool', text: 'Designed for one learner. The "practice" of coding here is reduced to keyboard alone with a robot.' },
+            lecture: { label: 'in the system', text: 'A shared reference — many learners can think with this same video. Right now: paused, unused.' },
+            peer: { label: 'in the system', text: 'Another learner, online, on the same exercise. The cognition is here for the asking.' },
+            'section-leader': { label: 'in the system', text: 'A designed facilitator. Office hours are live. Asking is part of the practice.' },
+            forum: { label: 'critical tool', text: 'The shared cognition space. Past answers to this exact exercise almost certainly exist here.' },
+            progress: { label: 'misleading instrument', text: 'Counts solo completions. Misses the practice the course is designed for.' },
+            state: { label: 'system signal', text: '"Tab-cycling" alone = the network around Alex is dark.' }
+          }
+        },
+        sociocultural: {
+          label: 'Socio-cultural',
+          color: 'var(--sociocultural)', bg: 'var(--sociocultural-bg)',
+          intro: 'Whose CS? Whose pedagogy? The course encodes a specific tradition with specific assumptions about who learns, and how.',
+          foregrounded: [
+            'Karel is Stanford CS1, Rich Pattis 1981. A specific pedagogical lineage with an imagined learner.',
+            'Tab-cycling reads as "lack of focus." It might be culturally appropriate elsewhere.',
+            'Who counts as "a coder"? The course names a culture as it teaches one.',
+            'Whose definition of mastery? Finishing exercises, or building something one cares about?'
+          ],
+          noise: [
+            'The technical schema in isolation from who\'s allowed to participate.'
+          ],
+          recommend: 'Surface what the course assumes about its learners. Whose code? Whose mastery? Ask what learning to code is FOR, for Alex.',
+          cantSee: 'The specific schema Alex needs for the next Karel exercise.',
+          opacity: { alex: 1, karel: 0.8, lecture: 0.85, peer: 0.92, 'section-leader': 0.9, forum: 1, progress: 0.55, state: 0.9 },
+          els: {
+            alex: { label: 'positioned subject', text: 'Alex is a person entering a culture — coding — with its own history, norms, and gatekeepers.' },
+            karel: { label: 'cultural artifact', text: 'Karel: Stanford CS1, Rich Pattis 1981. A specific pedagogical tradition. Whose canon? Whose imagined learner?' },
+            lecture: { label: 'tradition encoded', text: 'A specific expert\'s framing of "what coding is." Worth asking: whose framing? from where?' },
+            forum: { label: 'cultural space', text: 'Who posts? In what tone? Who feels safe admitting confusion? The forum has a culture.' },
+            'section-leader': { label: 'cultural gatekeeper', text: 'Sets norms by what they reward, what they ignore. Their style of "good help" shapes the practice.' },
+            peer: { label: 'co-culture', text: 'Another learner. Their presence — or absence — in the forum signals what kind of community this is.' },
+            progress: { label: 'encoded values', text: 'Tracking "exercises complete" encodes a specific cultural definition of "doing the work."' },
+            state: { label: 'positioned feeling', text: '"Tab-cycling" is felt against a norm of focused, sustained attention. The norm is cultural, not universal.' }
+          }
+        }
+      }
+    },
+    maya: {
+      label: 'Maya',
+      sub: '10 y/o · ITS in classroom',
+      lenses: {
+        behaviorist: {
+          label: 'Behaviorist',
+          color: 'var(--behaviorist)', bg: 'var(--behaviorist-bg)',
+          intro: 'Learning is observable behavior. The system is doing exactly what it\'s designed to do.',
+          foregrounded: [
+            'Mastery 0.41 · 19 days on this item · 14 off-task events flagged.',
+            'Skill: equivalent fractions. Sub-skills: counting halves, multiplying both terms.',
+            'The drawing in the margin = off-task behavior, logged.'
+          ],
+          noise: [
+            'The friends sitting next to her.',
+            'What she thinks she\'s drawing.',
+            'Whether the teacher even knows her name.'
+          ],
+          recommend: 'Re-serve prerequisite 4.2. Increase hint frequency. Notify instructor dashboard.',
+          cantSee: 'That her drawing might be the most cognitively alive thing she does this hour.',
+          opacity: { maya: 1, tablet: 1, worksheet: 0.5, friend1: 0.15, friend2: 0.15, teacher: 0.2, dashboard: 1, state: 0.3 },
+          els: {
+            maya: { label: 'subject', text: 'Learner #4417. Mastery below target. Behavior trace indicates disengagement.' },
+            tablet: { label: 'observable', text: 'Adaptive item: 3/4 = ?/8. Hint sequence 1-8 already served.' },
+            worksheet: { label: 'off-task', text: 'Marginal markings detected. Classified as non-task behavior. Flagged.' },
+            friend1: { label: 'noise', text: 'Not part of the unit of analysis.' },
+            friend2: { label: 'noise', text: 'Not part of the unit of analysis.' },
+            teacher: { label: 'noise', text: 'External to the learner-system loop.' },
+            dashboard: { label: 'instrument', text: 'The whole picture: mastery, time-on-task, off-task events. This is what learning IS, to this lens.' },
+            state: { label: 'inference', text: '"Drifting" is unobservable. We measure clicks.' }
+          }
+        },
+        cognitive: {
+          label: 'Cognitive',
+          color: 'var(--cognitive)', bg: 'var(--cognitive-bg)',
+          intro: 'Learning is the construction of mental structure. Where is Maya\'s schema for fractions actually breaking?',
+          foregrounded: [
+            'She likely treats "fraction" as "the top number out of the bottom number" — a partition schema.',
+            'The bridge to ratio thinking (3/4 means a relationship, not a count) hasn\'t formed.',
+            'Hints that say "multiply top and bottom" don\'t address the missing concept.'
+          ],
+          noise: [
+            'The social texture of the classroom.',
+            'Whose math this is, culturally.'
+          ],
+          recommend: 'A worked example with a physical object showing partition vs. ratio. CTA the system\'s hint sequence.',
+          cantSee: 'That her friends could explain it in thirty seconds with a pizza, if anyone asked them to.',
+          opacity: { maya: 1, tablet: 1, worksheet: 0.7, friend1: 0.22, friend2: 0.22, teacher: 0.3, dashboard: 0.4, state: 1 },
+          els: {
+            maya: { label: 'sense-making', text: 'Maya is trying to build a schema. The system\'s hints aren\'t addressing the actual conceptual gap.' },
+            tablet: { label: 'concept-as-task', text: '3/4 = ?/8 only makes sense if you already see fractions as ratios. The item assumes the schema it should build.' },
+            worksheet: { label: 'cognitive trace', text: 'The drawing in the margin is also schema-building — just for something else.' },
+            state: { label: 'diagnostic', text: '"Drifting" tells us the system is no longer engaging her cognition. The schema isn\'t forming here.' },
+            friend1: { label: 'background', text: 'Cognition happens inside Maya. Friends are not part of the unit.' },
+            friend2: { label: 'background', text: 'Cognition happens inside Maya.' },
+            teacher: { label: 'potential source', text: 'Could be a source of expert explanations; not part of the cognitive system itself.' },
+            dashboard: { label: 'partial signal', text: 'Counts hints; misses what each hint assumed.' }
+          }
+        },
+        situated: {
+          label: 'Situated / Distributed',
+          color: 'var(--situated)', bg: 'var(--situated-bg)',
+          intro: 'Learning happens across a system. Maya is alone with the tablet when she\'s sitting next to four friends.',
+          foregrounded: [
+            'The tablet is a hub with no edges to humans.',
+            'Four friends in reach who could think with her, doing parallel solitary work.',
+            'The teacher is in the room but offstage from this practice.'
+          ],
+          noise: [
+            'Mastery scores treated as the unit of learning.',
+            'The hint sequence in isolation from any practice.'
+          ],
+          recommend: 'Have the friends do this with a shared object. The teacher pauses and circulates. Make the cognition shared.',
+          cantSee: 'The specific schema gap (partition vs. ratio) that the friends might or might not help with.',
+          opacity: { maya: 1, tablet: 0.7, worksheet: 0.85, friend1: 1, friend2: 1, teacher: 0.95, dashboard: 0.3, state: 0.65 },
+          els: {
+            maya: { label: 'one node', text: 'Maya is one node in a system that could include four friends, a teacher, an artifact, a tool. Right now it includes only the tablet.' },
+            tablet: { label: 'isolating tool', text: 'A hub designed for one user. The "practice" of math is here reduced to keystroke patterns.' },
+            friend1: { label: 'in the system', text: 'A peer who could explain or be explained-to. The cognitive system already includes her — Maya isn\'t using it.' },
+            friend2: { label: 'in the system', text: 'Another peer. Same.' },
+            teacher: { label: 'in the system', text: 'In the room but watching dashboards, not students. Reachable, unused.' },
+            worksheet: { label: 'shared-able artifact', text: 'A physical object two kids could think with, together. Right now Maya has it alone.' },
+            dashboard: { label: 'misleading instrument', text: 'Tells you the learner\'s state. Tells you nothing about the practice happening (or not) in the room.' },
+            state: { label: 'system signal', text: '"Drifting" alone is a sign the network around Maya is unused.' }
+          }
+        },
+        sociocultural: {
+          label: 'Socio-cultural',
+          color: 'var(--sociocultural)', bg: 'var(--sociocultural-bg)',
+          intro: 'Learning is participation in cultural practices. Whose definition of "good at fractions" shaped this app, this classroom, this flagging of her drawing as deviance?',
+          foregrounded: [
+            'The drawing in the margin is a culturally specific act of self-expression. The system can only see it as off-task.',
+            'Whose math? Whose definition of mastery? Who designed MathBuddy and what student did they imagine?',
+            'What is fractions FOR, for Maya — for a test, for cooking, for splitting rent later?'
+          ],
+          noise: [
+            'The mechanical particulars of the hint sequence.',
+            'The mastery score, in isolation.'
+          ],
+          recommend: 'Surface whose practices became the default. Ask: what is fractions FOR, for this child, in her life?',
+          cantSee: 'The local schema gap Maya needs to actually understand equivalent fractions.',
+          opacity: { maya: 1, tablet: 0.85, worksheet: 1, friend1: 0.9, friend2: 0.9, teacher: 0.85, dashboard: 0.65, state: 0.9 },
+          els: {
+            maya: { label: 'positioned subject', text: 'Maya is a person with a culture, an identity, a way of marking her world. Not a generic "learner."' },
+            tablet: { label: 'cultural artifact', text: 'A specific kind of math, encoded by specific people, for an imagined student. Whose student?' },
+            worksheet: { label: 'site of resistance', text: 'The drawing in the margin is identity work — she\'s marking the page as hers. The system calls this deviance.' },
+            friend1: { label: 'co-culture', text: 'The room\'s implicit rule: "do your own work." Whose value is that?' },
+            friend2: { label: 'co-culture', text: 'Same.' },
+            teacher: { label: 'gatekeeper', text: 'Decides what counts as "doing math" here. Sets the norms by what they reward or flag.' },
+            dashboard: { label: 'encoded values', text: 'Tracking "off-task events" encodes a cultural definition of being-on-task.' },
+            state: { label: 'positioned feeling', text: '"Drifting" is felt against an internalized norm of focus. The norm is cultural, not natural.' }
+          }
+        }
+      }
+    },
+    devi: {
+      label: 'Devi',
+      sub: 'adult learner · music jam',
+      lenses: {
+        behaviorist: {
+          label: 'Behaviorist',
+          color: 'var(--behaviorist)', bg: 'var(--behaviorist-bg)',
+          intro: 'Learning is observable behavior. The lens looks for a rubric, a test, a mastery threshold — and finds none.',
+          foregrounded: [
+            'No rubric. No formal mastery. The $3 in the tip jar is not a learning signal.',
+            'No way to decompose "jam well" into measurable sub-skills the system can sequence.',
+            'The instrument here is fundamentally mis-fit for the setting.'
+          ],
+          noise: [
+            'Whatever is actually happening musically.',
+            'The whole texture of the room.'
+          ],
+          recommend: 'Decompose chord changes into timed drills with corrective feedback. (The recommendation feels alien — that\'s the point.)',
+          cantSee: 'That Devi IS learning by every meaningful measure that isn\'t this lens\'s measure.',
+          opacity: { devi: 1, guitar: 1, marcus: 0.15, jammers: 0.12, bartender: 0.1, chordsheet: 0.7, tipjar: 1, state: 0.25 },
+          els: {
+            devi: { label: 'subject', text: 'Learner. No baseline. No measurement protocol. Cannot generate a mastery estimate.' },
+            guitar: { label: 'instrument-as-tool', text: 'A skill substrate. Could be tested via chord-change accuracy, if anyone were testing.' },
+            marcus: { label: 'noise', text: 'Not part of the learner-system loop.' },
+            jammers: { label: 'noise', text: 'Not part of the learner-system loop.' },
+            bartender: { label: 'noise', text: 'Irrelevant.' },
+            chordsheet: { label: 'partial artifact', text: 'A scaffold, but not a structured curriculum.' },
+            tipjar: { label: 'mis-signal', text: '$3 ≠ mastery. Cannot use this as feedback.' },
+            state: { label: 'inference', text: 'Unobservable. We don\'t measure feelings.' }
+          }
+        },
+        cognitive: {
+          label: 'Cognitive',
+          color: 'var(--cognitive)', bg: 'var(--cognitive-bg)',
+          intro: 'Learning is mental structure. Devi is forming chord-transition schemas through repetition and modeling.',
+          foregrounded: [
+            'G and C chord shapes likely consolidated. D7 transition still effortful.',
+            'Song structure schemas forming through repeated exposure.',
+            'Repetition + observation are doing real cognitive work.'
+          ],
+          noise: [
+            'The other players treated as anything but stimuli.',
+            'The cultural specificity of the music.'
+          ],
+          recommend: 'Worked-example videos at home. Deliberate practice on D7 transitions.',
+          cantSee: 'That the cognition isn\'t happening only inside Devi\'s head — it\'s happening across the circle.',
+          opacity: { devi: 1, guitar: 1, marcus: 0.3, jammers: 0.22, bartender: 0.2, chordsheet: 1, tipjar: 0.3, state: 1 },
+          els: {
+            devi: { label: 'sense-making', text: 'Devi\'s mental model of how the song goes is forming through repetition.' },
+            guitar: { label: 'concept substrate', text: 'Where the schemas land — chord shapes, transition fluency.' },
+            chordsheet: { label: 'cognitive scaffold', text: 'External representation. Reduces working-memory load while schemas form.' },
+            state: { label: 'diagnostic', text: '"Watching closely" = active schema-building in observation mode.' },
+            marcus: { label: 'background', text: 'A model to observe; cognition still happens inside Devi.' },
+            jammers: { label: 'background', text: 'Other learners. Each their own cognitive system.' },
+            bartender: { label: 'background', text: 'Irrelevant.' },
+            tipjar: { label: 'irrelevant', text: 'Outside the cognitive system.' }
+          }
+        },
+        situated: {
+          label: 'Situated / Distributed',
+          color: 'var(--situated)', bg: 'var(--situated-bg)',
+          intro: 'This is the lens\'s home. The jam IS the cognition — distributed across players, instruments, the tune-as-shared-object.',
+          foregrounded: [
+            'Marcus models. Devi watches and tries. Eye contact carries the chord change.',
+            'The tune itself is a shared cognitive object — no one player holds the whole.',
+            'Cognition is in the system, not in any one head.'
+          ],
+          noise: [
+            'Individual mastery as a thing apart from the practice.',
+            '"Did she play the right notes?" misses what learning IS here.'
+          ],
+          recommend: 'Keep showing up. Sit closer to Marcus. Try the lead-vocal next month. The practice itself is the curriculum.',
+          cantSee: 'Specific technical schema gaps Devi might have privately, sitting alone with her guitar at home.',
+          opacity: { devi: 1, guitar: 0.95, marcus: 1, jammers: 1, bartender: 0.6, chordsheet: 1, tipjar: 0.75, state: 0.7 },
+          els: {
+            devi: { label: 'one node', text: 'Devi is one node in a learning system that includes six other players, a tune, a sheet, a room, a ritual.' },
+            guitar: { label: 'in the system', text: 'A tool, yes, but the cognition isn\'t in the instrument alone — it\'s in playing-with-others.' },
+            marcus: { label: 'in the system', text: 'The lead player. The cognitive system is using him for modeling — eye contact carries chord changes.' },
+            jammers: { label: 'in the system', text: 'Each player adds and adapts. The whole is the cognition; no one part holds it.' },
+            chordsheet: { label: 'shared artifact', text: 'A cognitive scaffold for the group, not for one head.' },
+            bartender: { label: 'edge of system', text: 'Outside the playing circle but part of the setting that lets the practice happen.' },
+            tipjar: { label: 'system signal', text: 'A sign that the practice is valued by listeners — feedback for the whole circle.' },
+            state: { label: 'system signal', text: '"Watching closely" = participation. Legitimate peripheral participation in action.' }
+          }
+        },
+        sociocultural: {
+          label: 'Socio-cultural',
+          color: 'var(--sociocultural)', bg: 'var(--sociocultural-bg)',
+          intro: 'Whose tradition is this jam in? Who gets the solo? Whose musical practices were encoded as "the way" here?',
+          foregrounded: [
+            'Folk, blues, Appalachian, Latinx — every jam carries a tradition with politics.',
+            'Who calls the next tune? Who waits to be invited? Who never gets invited?',
+            '"Open mic" — open to whom?'
+          ],
+          noise: [
+            'The mechanical particulars of guitar technique.',
+            'Mastery as an individual property.'
+          ],
+          recommend: 'Examine the jam\'s implicit gatekeeping. Whose music gets to count as "real" music here?',
+          cantSee: 'The specific chord shapes Devi is fumbling.',
+          opacity: { devi: 1, guitar: 0.85, marcus: 0.95, jammers: 0.95, bartender: 0.85, chordsheet: 1, tipjar: 0.95, state: 0.9 },
+          els: {
+            devi: { label: 'positioned subject', text: 'Devi is entering a practice with its own history, identity politics, and gatekeeping — visible and invisible.' },
+            guitar: { label: 'cultural object', text: 'A guitar isn\'t neutral. Whose music does it expect? Whose body does it fit?' },
+            marcus: { label: 'gatekeeper', text: 'Sets the standard by what he plays, what he invites, what he ignores.' },
+            jammers: { label: 'co-culture', text: 'Each one brings a different tradition. Which one becomes "the jam"?' },
+            bartender: { label: 'cultural object', text: 'The bar is a context — its history shapes who feels welcome to play.' },
+            chordsheet: { label: 'tradition encoded', text: 'A song list embeds a canon. Whose songs are on it? Whose aren\'t?' },
+            tipjar: { label: 'cultural object', text: 'Tips signal valuation. By whom, of what?' },
+            state: { label: 'positioned feeling', text: '"Watching closely" — does that feel like welcome, or surveillance? Depends who you are.' }
+          }
+        }
+      }
+    }
+  };
+
+  // Backwards compatibility — most code below references LENSES, so point it at the active case.
+  let activeCase = 'alex';
+  function L() { return CASES[activeCase].lenses; }
+
+  const lensCursor = document.getElementById('lens-cursor');
+  const annotation = document.getElementById('annotation');
+  const scene = document.getElementById('scene');
+  let activeLens = null;
+
+  function lensCursorSVG(lens) {
+    const color = ({
+      behaviorist: '#6a7a8a',
+      cognitive: '#8a6aaa',
+      situated: '#6a8a5a',
+      sociocultural: '#a05a6a'
+    })[lens];
+    // Cursors stay crisp (they're tools, not artwork). Each one refined as a brass-instrument glyph.
+    const cursors = {
+      // surveyor's reticle
+      behaviorist: `<g stroke="${color}" stroke-width="1.4" fill="none" stroke-linecap="round">
+        <circle cx="22" cy="22" r="13"/>
+        <circle cx="22" cy="22" r="8" opacity="0.6"/>
+        <line x1="22" y1="4" x2="22" y2="12"/>
+        <line x1="22" y1="32" x2="22" y2="40"/>
+        <line x1="4" y1="22" x2="12" y2="22"/>
+        <line x1="32" y1="22" x2="40" y2="22"/>
+        <circle cx="22" cy="22" r="1.6" fill="${color}" stroke="none"/>
+      </g>`,
+      // magnifying glass with handle
+      cognitive: `<g stroke="${color}" stroke-width="1.6" fill="none" stroke-linecap="round">
+        <circle cx="17" cy="17" r="11"/>
+        <line x1="25" y1="25" x2="36" y2="36"/>
+        <line x1="14" y1="14" x2="20" y2="14" opacity="0.45"/>
+        <line x1="14" y1="14" x2="14" y2="20" opacity="0.45"/>
+      </g>`,
+      // small constellation — center hub with four satellites, connected
+      situated: `<g stroke="${color}" stroke-width="1.2" fill="none" stroke-linecap="round">
+        <line x1="22" y1="22" x2="8" y2="10"/>
+        <line x1="22" y1="22" x2="36" y2="10"/>
+        <line x1="22" y1="22" x2="8" y2="34"/>
+        <line x1="22" y1="22" x2="36" y2="34"/>
+        <circle cx="22" cy="22" r="3.2" fill="${color}" stroke="none"/>
+        <circle cx="8" cy="10" r="2.4" fill="${color}" stroke="none"/>
+        <circle cx="36" cy="10" r="2.4" fill="${color}" stroke="none"/>
+        <circle cx="8" cy="34" r="2.4" fill="${color}" stroke="none"/>
+        <circle cx="36" cy="34" r="2.4" fill="${color}" stroke="none"/>
+      </g>`,
+      // three overlapping translucent circles — Venn / kaleidoscope
+      sociocultural: `<g fill="${color}" fill-opacity="0.32" stroke="${color}" stroke-width="1.2">
+        <circle cx="17" cy="17" r="9"/>
+        <circle cx="27" cy="17" r="9"/>
+        <circle cx="22" cy="27" r="9"/>
+      </g>`
+    };
+    return cursors[lens] || '';
+  }
+
+  const LENS_BODY_CLASSES = ['lens-behaviorist', 'lens-cognitive', 'lens-situated', 'lens-sociocultural'];
+
+  function applyElementOpacity(lens) {
+    const activeGroup = scene.querySelector('.case-group.active');
+    if (!activeGroup) return;
+    const map = lens ? (L()[lens] && L()[lens].opacity) : null;
+    activeGroup.querySelectorAll('.scene-el').forEach(el => {
+      const key = el.dataset.el;
+      el.style.opacity = map ? (map[key] != null ? map[key] : 1) : 1;
+    });
+  }
+
+  // Case-switching: swap the visible scene + reset any equipped lens
+  function setCase(caseName) {
+    if (!CASES[caseName] || caseName === activeCase) return;
+    // teardown any active lens before switching
+    if (activeLens) setLens(activeLens); // toggles off
+    activeCase = caseName;
+    document.querySelectorAll('.case-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.case === caseName);
+    });
+    scene.querySelectorAll('.case-group').forEach(g => {
+      g.classList.toggle('active', g.dataset.case === caseName);
+    });
+    sidebarReset();
+    applyElementOpacity(null);
+  }
+  document.querySelectorAll('.case-btn').forEach(b => {
+    b.addEventListener('click', () => setCase(b.dataset.case));
+  });
+
+  function setLens(lens) {
+    if (activeLens === lens) {
+      activeLens = null;
+      document.body.classList.remove('lens-active', 'tinted');
+      LENS_BODY_CLASSES.forEach(c => document.body.classList.remove(c));
+      document.documentElement.style.removeProperty('--lens');
+      document.documentElement.style.removeProperty('--lens-bg');
+      document.querySelectorAll('.lens-btn').forEach(b => b.classList.remove('active'));
+      lensCursor.classList.remove('show');
+      annotation.classList.remove('show');
+      applyElementOpacity(null);
+      sidebarReset();
+      return;
+    }
+    activeLens = lens;
+    const Lns = L()[lens];
+    document.documentElement.style.setProperty('--lens', Lns.color);
+    document.documentElement.style.setProperty('--lens-bg', Lns.bg);
+    document.body.classList.add('lens-active', 'tinted');
+    LENS_BODY_CLASSES.forEach(c => document.body.classList.remove(c));
+    document.body.classList.add('lens-' + lens);
+    document.querySelectorAll('.lens-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.lens === lens);
+    });
+    lensCursor.innerHTML = lensCursorSVG(lens);
+    applyElementOpacity(lens);
+    sidebarFill(lens);
+    if (!session.lensesTried.includes(lens)) {
+      session.lensesTried.push(lens);
+      updateLensProgress();
+    }
+  }
+  function sidebarReset() {
+    document.getElementById('sb-tag').textContent = 'no lens equipped';
+    document.getElementById('sb-title').textContent = 'Pick a lens to begin';
+    document.getElementById('sb-intro').style.display = '';
+    document.getElementById('sb-content').style.display = 'none';
+  }
+  function sidebarFill(lens) {
+    const Lns = L()[lens];
+    document.getElementById('sb-tag').textContent = Lns.label + ' · ' + CASES[activeCase].label;
+    document.getElementById('sb-title').textContent = Lns.intro.split('.')[0] + '.';
+    document.getElementById('sb-intro').style.display = 'none';
+    document.getElementById('sb-content').style.display = '';
+    document.getElementById('sb-fore').innerHTML = Lns.foregrounded.map(s => `<li>${s}</li>`).join('');
+    document.getElementById('sb-noise').innerHTML = Lns.noise.map(s => `<li>${s}</li>`).join('');
+    document.getElementById('sb-recommend').textContent = Lns.recommend;
+    document.getElementById('sb-cantsee').textContent = Lns.cantSee;
+  }
+  function updateLensProgress() {
+    const n = session.lensesTried.length;
+    document.getElementById('lens-progress').innerHTML =
+      `Lenses tried: <strong>${n} of 4</strong>. ${n >= 2 ? 'Continue when ready.' : 'Try at least two to continue.'}`;
+    document.getElementById('b1-next').disabled = n < 2;
+  }
+  document.querySelectorAll('.lens-btn').forEach(b => {
+    b.addEventListener('click', () => setLens(b.dataset.lens));
+  });
+  document.addEventListener('keydown', e => {
+    if (current !== 1) return;
+    const map = { '1': 'behaviorist', '2': 'cognitive', '3': 'situated', '4': 'sociocultural' };
+    if (map[e.key]) setLens(map[e.key]);
+  });
+
+  // cursor follow
+  window.addEventListener('mousemove', e => {
+    if (!activeLens || current !== 1) {
+      lensCursor.classList.remove('show');
+      return;
+    }
+    lensCursor.style.left = e.clientX + 'px';
+    lensCursor.style.top = e.clientY + 'px';
+    lensCursor.classList.add('show');
+  });
+
+  // scene element hover — uses event delegation so all three cases' elements are covered
+  scene.addEventListener('mouseover', e => {
+    if (!activeLens) return;
+    const el = e.target.closest('.scene-el');
+    if (!el) return;
+    const caseGroup = el.closest('.case-group');
+    if (!caseGroup || !caseGroup.classList.contains('active')) return;
+    const key = el.dataset.el;
+    const Lns = L()[activeLens];
+    const note = Lns.els[key];
+    if (!note) return;
+    annotation.style.borderColor = Lns.color;
+    annotation.innerHTML = `<span class="a-label" style="color:${Lns.color};">${note.label}</span>${note.text}`;
+    annotation.classList.add('show');
+  });
+  scene.addEventListener('mousemove', e => {
+    if (!activeLens) return;
+    if (!e.target.closest('.scene-el')) return;
+    annotation.style.left = (e.clientX + 28) + 'px';
+    annotation.style.top = (e.clientY + 18) + 'px';
+  });
+  scene.addEventListener('mouseout', e => {
+    const out = e.target.closest('.scene-el');
+    if (out) annotation.classList.remove('show');
+  });
+  scene.addEventListener('focusin', e => {
+    if (!activeLens) return;
+    const el = e.target.closest('.scene-el');
+    if (!el) return;
+    const caseGroup = el.closest('.case-group');
+    if (!caseGroup || !caseGroup.classList.contains('active')) return;
+    const key = el.dataset.el;
+    const Lns = L()[activeLens];
+    const note = Lns.els[key];
+    if (!note) return;
+    annotation.style.borderColor = Lns.color;
+    annotation.innerHTML = `<span class="a-label" style="color:${Lns.color};">${note.label}</span>${note.text}`;
+    const rect = el.getBoundingClientRect();
+    annotation.style.left = (rect.right + 12) + 'px';
+    annotation.style.top = (rect.top) + 'px';
+    annotation.classList.add('show');
+  });
+  scene.addEventListener('focusout', () => annotation.classList.remove('show'));
+
+  // ═══════════ BEATS 2-4: 2D MAP + PATTERNS ═══════════════
+  // Each pattern: id, name, x, y in viewBox coords (0-600, 0-460), foreground lenses, failure mode.
+  const PATTERNS = [
+    { id: 'its', name: 'Intelligent Tutoring System', x: 165, y: 145, foreground: ['cognitive', 'behaviorist'],
+      desc: 'Adaptive system that diagnoses learner state and serves next problems.',
+      failure: 'Treats culture and community as noise. Trains the right behaviors with no shared practice.' },
+    { id: 'khanmigo', name: 'Khanmigo / AI chat tutor', x: 220, y: 110, foreground: ['cognitive', 'behaviorist'],
+      desc: 'Conversational AI tutor that prompts, hints, and checks understanding.',
+      failure: 'Same as ITS, plus may flatten cultural specificity of student questions.' },
+    { id: 'tutor-1on1', name: 'One-on-one human tutor', x: 130, y: 175, foreground: ['cognitive'],
+      desc: 'Bloom\'s 2-sigma classic. Patient, calibrated, attentive.',
+      failure: 'Expensive. Doesn\'t scale. Lone-tutor framing misses peer learning.' },
+    { id: 'lecture', name: 'Traditional lecture', x: 105, y: 330, foreground: ['behaviorist', 'cognitive'],
+      desc: 'One expert, many students, transmission of content.',
+      failure: 'Ignores who\'s in the room, what\'s on their mind, what they bring.' },
+    { id: 'microworld', name: 'PhET microworld', x: 235, y: 195, foreground: ['cognitive'],
+      desc: 'Discovery-by-play simulation where learners manipulate variables.',
+      failure: 'Curriculum still implicit; can drift to surface play without conceptual depth.' },
+    { id: 'apprenticeship', name: 'Apprenticeship', x: 455, y: 295, foreground: ['situated'],
+      desc: 'Master + novice in real work. Legitimate peripheral participation.',
+      failure: 'Slow to scale. Can reproduce master\'s blind spots wholesale.' },
+    { id: 'cop-discord', name: 'Discord study group / CoP', x: 410, y: 195, foreground: ['situated', 'sociocultural'],
+      desc: 'Community of practice — many learners, shared craft, mutual help.',
+      failure: 'Without scaffolding, novices flounder. Can be lofty without directionality.' },
+    { id: 'family-table', name: 'Family kitchen-table learning', x: 480, y: 105, foreground: ['sociocultural'],
+      desc: 'Intergenerational, embedded, identity-saturated learning.',
+      failure: 'Hard to formalize, harder still to assess on external rubrics.' },
+    { id: 'peer-review', name: 'Peer-review / book club', x: 380, y: 120, foreground: ['sociocultural', 'cognitive'],
+      desc: 'Shared text + structured talk + identity work.',
+      failure: 'Slow. No guarantee of mastery on a defined outcome.' }
+  ];
+
+  // Add shared watercolor + sketchy defs and styling to every map SVG.
+  function enrichMap(svgId) {
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    const NS = 'http://www.w3.org/2000/svg';
+
+    // <defs> with washes + filter
+    const defs = document.createElementNS(NS, 'defs');
+    defs.innerHTML = `
+      <filter id="sk-${svgId}" x="-3%" y="-3%" width="106%" height="106%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="9"/>
+        <feDisplacementMap in="SourceGraphic" scale="1.3"/>
+      </filter>
+      <radialGradient id="q-beh-${svgId}" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="#6a7a8a" stop-opacity="0.32"/>
+        <stop offset="80%" stop-color="#6a7a8a" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#6a7a8a" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="q-cog-${svgId}" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="#8a6aaa" stop-opacity="0.32"/>
+        <stop offset="80%" stop-color="#8a6aaa" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#8a6aaa" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="q-sit-${svgId}" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="#6a8a5a" stop-opacity="0.32"/>
+        <stop offset="80%" stop-color="#6a8a5a" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#6a8a5a" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="q-soc-${svgId}" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="#a05a6a" stop-opacity="0.32"/>
+        <stop offset="80%" stop-color="#a05a6a" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#a05a6a" stop-opacity="0"/>
+      </radialGradient>
+    `;
+    svg.insertBefore(defs, svg.firstChild);
+
+    // Replace the existing solid-color quadrant ellipses with watercolor radial gradients.
+    const map = { behaviorist: 'beh', cognitive: 'cog', situated: 'sit', sociocultural: 'soc' };
+    svg.querySelectorAll('.map-region').forEach(el => {
+      for (const k in map) {
+        if (el.classList.contains(k)) {
+          el.setAttribute('fill', `url(#q-${map[k]}-${svgId})`);
+          el.setAttribute('fill-opacity', '1');
+          el.removeAttribute('stroke');
+          // make region bigger so washes overlap softly
+          el.setAttribute('rx', 160);
+          el.setAttribute('ry', 120);
+        }
+      }
+    });
+
+    // Sketchy-ify the axis lines (apply filter to existing ones)
+    svg.querySelectorAll('.axis-line').forEach(el => {
+      el.setAttribute('filter', `url(#sk-${svgId})`);
+      el.setAttribute('stroke-linecap', 'round');
+      el.setAttribute('stroke-width', '0.9');
+      el.setAttribute('opacity', '0.7');
+    });
+
+    // Sketchy-ify the quadrant labels into Georgia italic
+    svg.querySelectorAll('.region-label').forEach(el => {
+      el.setAttribute('font-family', 'Georgia, serif');
+      el.setAttribute('font-style', 'italic');
+      el.removeAttribute('font-size');
+      el.style.fontSize = '13px';
+      el.style.letterSpacing = '0.02em';
+      el.style.textTransform = 'none';
+    });
+  }
+  ['map2', 'map3', 'map4'].forEach(enrichMap);
+
+  function pinPatterns(svgId, classExtra = '') {
+    const g = document.querySelector(`#${svgId} #patterns, #${svgId} #map3-patterns, #${svgId} #map4-patterns`);
+    if (!g) return;
+    g.innerHTML = '';
+    PATTERNS.forEach(p => {
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', p.x);
+      dot.setAttribute('cy', p.y);
+      dot.setAttribute('r', 7);
+      dot.setAttribute('fill', '#9a6a3a');
+      dot.setAttribute('class', 'pattern-dot ' + classExtra);
+      dot.setAttribute('data-pattern-id', p.id);
+      g.appendChild(dot);
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', p.x);
+      lbl.setAttribute('y', p.y + 22);
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('class', 'pattern-label');
+      lbl.textContent = p.name;
+      g.appendChild(lbl);
+    });
+  }
+  pinPatterns('map2');
+  pinPatterns('map3');
+  pinPatterns('map4');
+
+  // pattern card behavior (beat 2)
+  const pcard = document.getElementById('pcard');
+  document.getElementById('map2').addEventListener('click', e => {
+    const dot = e.target.closest('.pattern-dot');
+    if (!dot) {
+      pcard.classList.remove('show');
+      return;
+    }
+    const p = PATTERNS.find(x => x.id === dot.dataset.patternId);
+    if (!p) return;
+    const fgChips = ['behaviorist', 'cognitive', 'situated', 'sociocultural']
+      .map(l => `<span class="lens-chip ${l} ${p.foreground.includes(l) ? '' : 'muted'}">${l}</span>`).join('');
+    pcard.innerHTML = `
+      <h4>${p.name}</h4>
+      <div class="p-meta">design pattern</div>
+      <p style="margin:4px 0;">${p.desc}</p>
+      <div class="lens-chips">${fgChips}</div>
+      <div class="failure"><strong>Likely failure mode:</strong> ${p.failure}</div>
+    `;
+    const rect = dot.getBoundingClientRect();
+    const wrap = document.querySelector('.map-wrap').getBoundingClientRect();
+    pcard.style.left = Math.min(rect.left - wrap.left + 16, wrap.width - 300) + 'px';
+    pcard.style.top = Math.max(rect.top - wrap.top - 60, 8) + 'px';
+    pcard.classList.add('show');
+  });
+
+  // add-pattern modal
+  const modal = document.getElementById('modal-backdrop');
+  let pendingPattern = null;
+  document.getElementById('add-pattern-btn').addEventListener('click', () => {
+    modal.classList.add('show');
+  });
+  document.getElementById('pn-cancel').addEventListener('click', () => {
+    modal.classList.remove('show');
+    document.getElementById('pn-name').value = '';
+    document.getElementById('pn-desc').value = '';
+    document.querySelectorAll('.lens-check input').forEach(c => c.checked = false);
+  });
+  document.getElementById('pn-save').addEventListener('click', () => {
+    const name = document.getElementById('pn-name').value.trim();
+    if (!name) { document.getElementById('pn-name').focus(); return; }
+    const desc = document.getElementById('pn-desc').value.trim();
+    const lenses = Array.from(document.querySelectorAll('.lens-check input:checked')).map(c => c.value);
+    pendingPattern = { name, desc, lenses };
+    modal.classList.remove('show');
+    document.getElementById('cat-progress').innerHTML = `<strong>Click anywhere on the map</strong> to place "${name}".`;
+    document.getElementById('map2').classList.add('placing');
+  });
+  document.getElementById('map2').addEventListener('click', e => {
+    if (!pendingPattern) return;
+    const svg = document.getElementById('map2');
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const sp = pt.matrixTransform(svg.getScreenCTM().inverse());
+    placeUserPattern(sp.x, sp.y);
+  });
+  function placeUserPattern(x, y) {
+    const g = document.querySelector('#map2 #user-patterns');
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('r', 8);
+    dot.setAttribute('fill', '#f5d4a8'); dot.setAttribute('class', 'pattern-dot user');
+    g.appendChild(dot);
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    lbl.setAttribute('x', x); lbl.setAttribute('y', y + 22);
+    lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('class', 'pattern-label');
+    lbl.setAttribute('font-weight', 'bold');
+    lbl.textContent = pendingPattern.name;
+    g.appendChild(lbl);
+    session.userPatterns.push({ ...pendingPattern, x: Math.round(x), y: Math.round(y) });
+    pendingPattern = null;
+    document.getElementById('map2').classList.remove('placing');
+    document.getElementById('cat-progress').textContent =
+      `Added: ${session.userPatterns[session.userPatterns.length - 1].name}. Add another or continue.`;
+    document.getElementById('pn-name').value = '';
+    document.getElementById('pn-desc').value = '';
+    document.querySelectorAll('.lens-check input').forEach(c => c.checked = false);
+  }
+
+  // ═══════════ BEAT 3: positionality markers ══════════════
+  const POS_LABELS = [
+    'your design instinct',
+    'where you learned best',
+    'your current work or practice'
+  ];
+  const POS_COLORS = ['#9a6a3a', '#5a8a6a', '#8a5a8a'];
+  let posIndex = 0;
+
+  function refreshPosPrompt() {
+    if (posIndex >= 3) {
+      document.getElementById('pos-progress').innerHTML =
+        '<strong>All three placed.</strong> Reset to redo, or add a note below.';
+      document.getElementById('b3-next').disabled = false;
+    } else {
+      document.getElementById('pos-progress').innerHTML =
+        `Click the map to drop a marker for <strong>${POS_LABELS[posIndex]}</strong>. (${posIndex + 1} of 3)`;
+    }
+  }
+  document.getElementById('map3').addEventListener('click', e => {
+    if (posIndex >= 3) return;
+    if (e.target.closest('.personal-marker')) return;
+    const svg = document.getElementById('map3');
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const sp = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const g = document.querySelector('#map3 #personal-markers');
+    const m = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    m.setAttribute('class', 'personal-marker');
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', sp.x); c.setAttribute('cy', sp.y); c.setAttribute('r', 10);
+    c.setAttribute('fill', POS_COLORS[posIndex]); c.setAttribute('opacity', '0.85');
+    c.setAttribute('stroke', 'white'); c.setAttribute('stroke-width', '2');
+    m.appendChild(c);
+    const l = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    l.setAttribute('x', sp.x); l.setAttribute('y', sp.y + 25);
+    l.setAttribute('text-anchor', 'middle');
+    l.setAttribute('class', 'pattern-label');
+    l.setAttribute('font-weight', 'bold');
+    l.setAttribute('fill', POS_COLORS[posIndex]);
+    l.textContent = POS_LABELS[posIndex];
+    m.appendChild(l);
+    g.appendChild(m);
+    session.personalMarkers.push({ label: POS_LABELS[posIndex], x: Math.round(sp.x), y: Math.round(sp.y) });
+    posIndex++;
+    refreshPosPrompt();
+  });
+  document.getElementById('pos-reset').addEventListener('click', () => {
+    document.querySelector('#map3 #personal-markers').innerHTML = '';
+    session.personalMarkers = [];
+    posIndex = 0;
+    document.getElementById('b3-next').disabled = true;
+    refreshPosPrompt();
+  });
+
+  // ═══════════ BEAT 4: design-bench ═══════════════════════
+  const GROUP_LABELS = ['solo', '1-on-1', 'small group', 'community'];
+
+  // Slider → coordinate model.
+  // x ∈ [0, 600] : individual ↔ collective. Group structure dominates, with culture-spec contributing.
+  // y ∈ [0, 460] : observable ↔ inferred-meaning (low y = inferred). Scaffolding+directionality push observable; culture-spec pulls inferred.
+  function computeDesignCoords(s) {
+    const x = 100 + (s.group / 3) * 320 + (s.culture / 100) * 80;
+    // observable ↔ inferred: high direction + high scaffold + high tool → observable (y high in our system);
+    // low direction + high culture → inferred meaning (y low).
+    const observable = (s.direction * 0.35 + s.scaffold * 0.4 + s.tool * 0.25) / 100;
+    const inferred = ((100 - s.direction) * 0.3 + s.culture * 0.5 + (100 - s.scaffold) * 0.2) / 100;
+    // map y: low y = inferred (top of map), high y = observable (bottom)
+    const yNorm = 0.5 + (observable - inferred) * 0.4; // 0..1
+    const y = 90 + yNorm * 280;
+    return { x: Math.max(60, Math.min(540, x)), y: Math.max(70, Math.min(400, y)) };
+  }
+
+  function nearestPattern(x, y) {
+    let best = null, bd = Infinity;
+    PATTERNS.forEach(p => {
+      const d = Math.hypot(p.x - x, p.y - y);
+      if (d < bd) { bd = d; best = p; }
+    });
+    return { pattern: best, dist: bd };
+  }
+
+  function readings(s, coords) {
+    const np = nearestPattern(coords.x, coords.y);
+    const nearLine = np.dist < 55 ? ` Your design sits close to <em>${np.pattern.name}</em>.` : '';
+    return {
+      behaviorist: (s.scaffold > 60 || s.direction > 60)
+        ? `Skill components decomposed; mastery measurable.${nearLine}`
+        : `Hard to assess mastery — observable skills are not clearly decomposed.${nearLine}`,
+      cognitive: (s.scaffold > 50 && s.direction < 70)
+        ? `Schemas can form. Worked examples and sense-making space present.${nearLine}`
+        : (s.scaffold < 30
+          ? `Novices may flounder — too little structure to build mental models.${nearLine}`
+          : `Concept formation possible but conceptual leaps unsupported.${nearLine}`),
+      situated: (s.group >= 2 || s.tool > 60)
+        ? `Cognition is distributed across people and tools. Real practice.${nearLine}`
+        : `Learner is largely alone. The practice happens off-stage from real activity.${nearLine}`,
+      sociocultural: (s.culture > 60)
+        ? `Cultural specificity preserved. Whose knowledge counts is visible.${nearLine}`
+        : `Culture treated as universal. Whose practices got encoded as default is invisible.${nearLine}`
+    };
+  }
+
+  const designDot = document.getElementById('design-dot');
+  function updateBench() {
+    const s = session.sliders;
+    document.querySelector('[data-display="s-direction"]').textContent = s.direction;
+    document.querySelector('[data-display="s-scaffold"]').textContent = s.scaffold;
+    document.querySelector('[data-display="s-group"]').textContent = GROUP_LABELS[s.group];
+    document.querySelector('[data-display="s-tool"]').textContent = s.tool;
+    document.querySelector('[data-display="s-culture"]').textContent = s.culture;
+    const c = computeDesignCoords(s);
+    session.designCoords = c;
+    designDot.setAttribute('cx', c.x);
+    designDot.setAttribute('cy', c.y);
+    // pattern proximity highlight
+    document.querySelectorAll('#map4 .pattern-dot').forEach(d => d.classList.remove('proximate'));
+    const np = nearestPattern(c.x, c.y);
+    if (np.dist < 55) {
+      const target = document.querySelector(`#map4 .pattern-dot[data-pattern-id="${np.pattern.id}"]`);
+      if (target) target.classList.add('proximate');
+    }
+    const r = readings(s, c);
+    document.getElementById('r-behaviorist').innerHTML = r.behaviorist;
+    document.getElementById('r-cognitive').innerHTML = r.cognitive;
+    document.getElementById('r-situated').innerHTML = r.situated;
+    document.getElementById('r-sociocultural').innerHTML = r.sociocultural;
+  }
+  document.querySelectorAll('[data-slider]').forEach(sl => {
+    sl.addEventListener('input', () => {
+      session.sliders[sl.dataset.slider] = parseInt(sl.value, 10);
+      updateBench();
+    });
+  });
+  document.querySelectorAll('[name="ctx"]').forEach(r => {
+    r.addEventListener('change', () => { session.designContext = r.value; });
+  });
+  updateBench();
+
+  // enter-key navigation in textareas (shift+enter = newline)
+  document.querySelectorAll('textarea').forEach(t => {
+    t.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey && t.id === 'answer1') {
+        e.preventDefault();
+        document.querySelector('[data-beat="0"] [data-next]').click();
+      }
+    });
+  });
+
+  // init
+  showBeat(0);
+</script>
+</body>
+</html>
