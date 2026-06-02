@@ -202,23 +202,25 @@
   .case-group.active { display: inline; }
 
   /* ─── BEAT 1: lens-switcher ─────────────────────── */
+  /* Stage stacks vertically: scene on top (large), sidebar below */
   .lens-stage {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    gap: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
     margin: 24px 0 18px;
-    align-items: start;
-  }
-  @media (max-width: 760px) {
-    .lens-stage { grid-template-columns: 1fr; }
   }
 
   .lens-canvas-wrap {
     background: var(--page);
     border: 1px solid var(--rule);
     border-radius: 3px;
-    padding: 18px;
+    padding: 22px 24px;
     transition: background 0.5s ease, border-color 0.5s ease;
+    width: 100%;
+  }
+  .lens-canvas {
+    max-width: 720px;
+    margin: 0 auto;
   }
   body.lens-active .lens-canvas-wrap {
     background: var(--lens-bg);
@@ -319,16 +321,17 @@
     margin-bottom: 4px;
   }
 
-  /* lens toolbar */
+  /* lens toolbar — single row of 4 on desktop, 2x2 grid on narrow screens */
   .lens-toolbar {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin: 14px 0 6px;
-    flex-wrap: wrap;
+  }
+  @media (max-width: 720px) {
+    .lens-toolbar { grid-template-columns: repeat(2, 1fr); }
   }
   .lens-btn {
-    flex: 1 1 auto;
-    min-width: 110px;
     padding: 10px 12px;
     background: var(--page);
     border: 1px solid var(--rule);
@@ -367,34 +370,50 @@
     font-style: italic;
   }
 
-  /* sidebar */
+  /* sidebar — sits BELOW the scene, full-width, with 2x2 grid of sections */
   .lens-sidebar {
     background: var(--page);
     border: 1px solid var(--rule);
     border-left: 3px solid var(--lens);
     border-radius: 3px;
-    padding: 18px 20px;
+    padding: 22px 28px;
     transition: border-color 0.5s ease, background 0.5s ease;
   }
   body.lens-active .lens-sidebar { background: var(--lens-bg); }
   .lens-sidebar h3 {
-    margin: 0 0 6px;
-    font-size: 18px;
+    margin: 0 0 8px;
+    font-size: 22px;
     color: var(--ink);
   }
   .lens-sidebar .lens-tag {
     font-family: -apple-system, sans-serif;
-    font-size: 10px;
-    letter-spacing: 0.14em;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--lens);
-    margin-bottom: 14px;
+    margin-bottom: 4px;
     display: block;
   }
+  #sb-intro {
+    max-width: 640px;
+    margin-bottom: 0;
+  }
+  /* The four readings as a 2x2 grid */
+  #sb-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 36px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule);
+  }
+  @media (max-width: 720px) {
+    #sb-content { grid-template-columns: 1fr; gap: 16px; }
+  }
   .lens-sidebar .section {
-    margin: 14px 0;
+    margin: 0;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.55;
   }
   .lens-sidebar .section h4 {
     font-family: -apple-system, sans-serif;
@@ -402,13 +421,13 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-soft);
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     font-weight: 600;
   }
   .lens-sidebar ul { margin: 0; padding-left: 18px; }
-  .lens-sidebar li { margin: 3px 0; color: var(--ink); }
-  .lens-sidebar .recommend { color: var(--lens); font-style: italic; }
-  .lens-sidebar .cant-see { color: var(--ink-soft); font-style: italic; }
+  .lens-sidebar li { margin: 4px 0; color: var(--ink); }
+  .lens-sidebar .recommend { color: var(--lens); font-style: italic; margin: 0; }
+  .lens-sidebar .cant-see { color: var(--ink-soft); font-style: italic; margin: 0; }
 
   /* ─── BEATS 2-3: 2D map ────────────────────────── */
   .map-wrap {
