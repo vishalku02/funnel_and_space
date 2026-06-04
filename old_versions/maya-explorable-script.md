@@ -4,6 +4,8 @@
 A project by Vishal and Yoyo.
 Educ 432 (Explorable Explanations) · Stat 292 (Statistical Models of Language and Text), Stanford.
 
+> **Document status (updated 2026-06-01).** This script has been reconciled with the built piece (`index.html`). Where the build settled a choice or expanded a screen, the doc now reflects what was built — most notably the palette revision (botanical-on-white, not cream; see below), the expansion of Screen 4 into four pages (4a–4d), and the resolved open decisions in Part Six. The companion `index.html` is the running implementation; this remains the content + visual bible. A second explorable, **Four Lenses on Learning** (`lenses.html`), is a separate piece — see `lenses-explorable-outline.md`.
+
 ---
 
 ## How to read this document
@@ -53,15 +55,21 @@ This gives two distal bookends and three proximal points: a clean trajectory in 
 
 **The two palettes.** The world is warm. The *system* is cold. The only cold screen is the tutoring software (M3). The coldness should never be narrated; it is carried entirely by color, type, and layout, so that when the player returns to warm paper afterward they feel the temperature change in their body.
 
-| | Warm world | Cold system |
+> **Palette revision (as built).** The original warm-cream paper (`#fdf6ee`) was dropped during the build. The cream tone now reads as a default-AI-artifact tell, which for a piece about paying real attention is the wrong first impression. The warm world moved to a cooler near-white paper with grounded, desaturated tree colors (botanical-on-white), and the cold system became *the same hues drained of life* rather than an obviously "techy" blue — so M3 looks like our world after something left it, which is more unsettling than a different palette. The table below is the live build.
+
+| | Warm world | Cold system (the same world, drained) |
 |---|---|---|
-| Background | `#fdf6ee` (paper) | `#f0f4f6` (screen grey-blue) |
-| Primary text | `#2d2420` (ink) | `#4a6a7a` (terminal blue) |
-| Mid text | `#6a5a4e` | `#7a9aaa` |
-| Faint | `#a09080` / `#c0b0a0` | `#cddde5` (rule) |
-| Accent | `#c4a882` (tan) / `#9a7850` (tan-dark) | none — flat |
-| Living accents (tree only) | soil-green `#6a7a52`, leaf `#c4a882`, fruit `#b8553c` | — |
+| Background | `#f8f8f5` (paper); page edges `#ece9e1` / `#e0ddd3` | `#e8eae7` (drained grey-green) |
+| Primary text | `#1f1d1a` (ink, near-black) | `#515b57` (drained text) |
+| Mid text | `#6b5d4f` (bark) | `#7d8a86` (cold mid) |
+| Faint | `#9a948a` (pencil) / `#b8b2a8` (pencil-faint) | `#c8cdc8` (cold rule) |
+| Accent | `#5f7355` (sage) · `#9c3b2e` (fruit, the one signal color) | none — flat; alerts in `#86807a` (drained) |
+| Living accents (tree only) | soil `#4f4636`, soil-light `#6a5d49`, leaf `#6f8560`, leaf-deep `#54683f`, trunk-live `#6b5d4f`, sun `#c0993f`, fruit `#9c3b2e` | — |
+| Dead trunk (M5) | trunk-dry `#8d8478`, edge `#6f675c` | — |
+| Doodle graphite | `#46423c` | — |
 | Type | Georgia / serif | Courier / monospace |
+
+The cold system is deliberately not a separate blue palette: it is the warm world's greens and browns pushed grey and lifeless, red removed entirely. The green going grey is the void the tree can't grow in.
 
 **Type rules.** Serif for everything human (questions, narration, Maya). Monospace only inside the system. System-ui sans, tiny and tracked-out, only for labels and captions (`letter-spacing: 0.14em`, uppercase). Questions are large and calm (~30px), never bold.
 
@@ -168,7 +176,11 @@ Each scene gives the staging (brief voice), the exact on-screen text (screen voi
 
 ## Screen 4 (M4) — What would you give her
 
+> **As built:** the original single Screen 4 expanded into **four pages (4a–4d)** during the build, to give the offer, the hidden design-questions, the isolation, and the converging-paths image room to breathe. The four checkboxes, the friends line, and the Answer-3 capture all survive; they are now distributed across 4a and 4c. The folio numbers in the build are 4 (4a), 5 (4b), 6 (4c), 7 (4d).
+
 **Staging.** Warm paper returns. Relief again. The player has just seen Maya reduced to a number; now they are invited to help, and they will want to. The four options are all real, good things — and all of them are system features. None of them is "sit with her." The menu can only sell trunk; it cannot sell soil. That incompleteness is the whole argument, so **do not ever add a human-contact checkbox.**
+
+### Screen 4a — The offer
 
 > **ON SCREEN:**
 > Maya uses a tutoring app at school. It watches how she does and changes the lessons to fit her.
@@ -178,15 +190,64 @@ Each scene gives the staging (brief voice), the exact on-screen text (screen voi
 > `☐ Send her parents a weekly progress report`
 > `☐ Add a discussion forum to the app`
 > `☐ Give her fifteen minutes with a human tutor each week`
+
+**Interaction.** Checkboxes (the player will likely check all — that generosity is the setup, not a trap).
+**Capture.** Which boxes were checked (kept out of the way).
+
+### Screen 4b — The two lists of questions
+
+**Staging.** Before Maya's app existed, someone designed it from a list of questions. The build shows that first list as five *checked* boxes, then a second list of five *unchecked* boxes that was never filled in. The contrast is the argument: every kind of help the player just gave answers a question from the first list; the second list — about who she's with, who she can ask, whose questions get asked — was never even started.
+
+> **ON SCREEN:**
+> Before Maya's app existed, someone designed it. They started from a list of questions.
+> `☑ What should Maya master next?`
+> `☑ How do we measure whether she can do it?`
+> `☑ What is the right next problem for her level?`
+> `☑ How do we know when she is ready to move on?`
+> `☑ What counts as being good at fractions?`
 >
-> Maya sits next to four of her friends in class. It's unfortunate, because lately she hasn't really talked to any of them.
+> Every kind of help you just gave answers one of these.
+>
+> Someone else could have started from a different list.
+> `☐ What is Maya working on, and who with?`
+> `☐ Who does she get to ask when she is stuck?`
+> `☐ What makes a room feel safe enough to be stuck in?`
+> `☐ Whose questions get asked? Whose do not?`
+> `☐ What might she care about that no one put on the worksheet?`
+>
+> This second list was never filled in.
+
+> *Margin glint (pencil): Bloom, 1984 — one child with one tutor outlearned the classroom by two standard deviations. The field has chased that number ever since.*
+
+### Screen 4c — The friends, and the near question
+
+**Staging.** The isolation lands here, now sharpened: most of her day is one screen, or one grown-up, and one her.
+
+> **ON SCREEN:**
+> Maya uses the app at school. After school, she has a tutor too.
+>
+> Most of her day is now one screen, or one grown-up, and one her.
+>
+> She sits next to four friends in class. It's unfortunate, because lately she hasn't really talked to any of them.
 >
 > What does Maya need right now?
 > `[ text field ]`
 
 **The quiet rhyme (do not point at it).** Four supports on the menu; four friends beside her. The system offers four mechanisms, life offers four people, and neither reaches her.
-**Interaction.** Checkboxes (the player will likely check all — that generosity is the setup, not a trap). Then the open question.
-**Capture.** Answer 3. (Optionally: which boxes were checked — mild, useful, but keep it out of the way.)
+**Capture.** Answer 3.
+
+### Screen 4d — Everyone's own path, one destination
+
+**Staging.** The first appearance of the converge image: many personalized paths fanning down to a single point, which becomes the top of the bare trunk to come. Built as the converging-paths SVG.
+
+> **ON SCREEN:**
+> Everyone gets their own path now.
+>
+> They all end in the same place.
+>
+> *(many personalized paths converging on one point — which becomes the top of the bare trunk)*
+
+> *Margin glint (pencil): "The pathway may be personalized, but not the destination." — Holmes et al., 2022.*
 
 ---
 
@@ -284,9 +345,9 @@ Deep visual direction, scene by scene. Written so you can draw it by hand or han
 
 ## The world's materials (applies everywhere)
 
-- **Paper.** The warm background is not flat `#fdf6ee` fill — give it the faintest paper tooth: a 2–3% noise or a very soft fiber texture, barely visible, so it reads as a held object rather than a webpage. Edges of "pages" can have a hair of shadow as if the sheet is lifting.
-- **Ink.** Body text sits like ink on that paper — `#2d2420`, never pure black. Slight warmth.
-- **Pencil margins.** Author glints are in a softer grey-brown (`#a09080`), smaller, set in the right or left margin, as if annotated by hand. They never interrupt the column; you can read the whole piece without them.
+- **Paper.** The warm background (now `#f8f8f5`, see palette revision) is not a flat fill — the build gives it page depth via stacked page-edge layers (`#ece9e1` / `#e0ddd3`) under a turning page, so it reads as a held picture book rather than a webpage. Edges of pages carry a hair of shadow as the sheet lifts and turns.
+- **Ink.** Body text sits like ink on that paper — `#1f1d1a`, never pure black. Slight warmth.
+- **Pencil margins.** Author glints are in a softer grey-brown (`#9a948a`, pencil), smaller, set in the margin as if annotated by hand. They never interrupt the column; you can read the whole piece without them.
 - **The doodle.** Drawn in a single warm graphite tone. Once made, it lives in the same fixed margin spot on every subsequent page, like a sticker the player placed. It is never recolored, never animated, never interpreted. It is the only thing on screen that the design itself refuses to touch.
 - **Motion easing.** Everything moves slowly and settles softly (ease-out, 0.6–0.9s). Nothing snaps. The one exception is the cut into M3, which is hard and immediate.
 
@@ -313,8 +374,8 @@ Think of one continuous vertical axis. At the top, far above, is the abstraction
 
 - **Space.** We drop from the centered schematic to an off-center, intimate page. Think of a single page of a picture book: text left or center, the margin (right) reserved and slightly indented for the doodle.
 - **Composition.** Generous line spacing. The eye moves text → "she draws" → empty margin box → (player draws) → question. The empty margin should quietly invite before it is named.
-- **Color.** Full warmth arrives here for the first time. Paper `#fdf6ee`, ink `#2d2420`, a single tan rule or accent. The warmth itself is the emotional event after the cold rings.
-- **The canvas.** Small, bordered faintly (`#e8ddd0`), one graphite stroke weight, no color picker, no tools, no undo-clutter. The smaller and plainer the better — it should feel like the corner of a worksheet, not an app. On commit, the stroke "settles" into the margin with a soft fade.
+- **Color.** Full warmth arrives here for the first time. Paper `#f8f8f5`, ink `#1f1d1a`, a single sage/bark rule or accent. The warmth itself is the emotional event after the cold rings.
+- **The canvas.** Small, bordered faintly (`#e6e0d4`), one graphite stroke weight (`#46423c`), no color picker, no tools, no undo-clutter. The smaller and plainer the better — it should feel like the corner of a worksheet, not an app. On commit, the stroke "settles" into the margin with a soft fade.
 - **Motion.** Text fades in a line at a time, slowly, so the player reads at the pace of someone being introduced to a child. Nothing rushes.
 - **Must not break.** The doodle is the player's, made *for her*. Framing must stay other-directed ("leave something with her"), never "draw your favorite animal." And the moment must never be gamified.
 
@@ -322,7 +383,7 @@ Think of one continuous vertical axis. At the top, far above, is the abstraction
 
 - **Space.** The cold fills the entire frame, edge to edge. No warm paper border. The player is *inside* the machine now, not looking at it on a page.
 - **Composition.** A dashboard. Left-aligned monospace rows, dot-leaders to the values, a boxed "recommended action" block. Cold, aligned, efficient. It should look competent and well-designed *as software* — this is not a strawman; good ed-tech looks like this. The horror is that it is good at what it does.
-- **Color.** `#f0f4f6` field, `#4a6a7a` text, `#cddde5` rules. The "▼ below target" and "flagged" in a slightly more saturated alert tone but still cold. No warm pixel anywhere.
+- **Color.** `#e8eae7` field, `#515b57` text, `#c8cdc8` rules (the warm world drained, see palette revision). The "▼ below target" and "flagged" sit in the drained `#86807a` — colorless rather than alarm-red, so even the warnings feel lifeless. No warm pixel anywhere.
 - **Type.** 100% monospace. Tracked-out sans only for the column header.
 - **Motion.** Hard cut in (no fade — the abruptness is the point). Values can tick/populate quickly and mechanically, the opposite of M2's slow human fade. Music drops out here.
 - **Must not break.** No narration, no caption telling the player it is cold. The "14 off-task events flagged" line is the buried heart — it must be present and must never be explained. Let it sit.
@@ -351,8 +412,8 @@ This is one continuous move; treat it as a single sequence.
 - **M7 (your words).** The three answers rise like things being lifted into light. Plain serif, generously spaced, each on its own line with its quiet label. "Your words." sits last and smallest. No effects, no flourish — the content is the player's own sentences, which need nothing added.
 - **M8 (the tip and bloom).** The big one. The camera completes its pull-back and **rotates from overhead to side view.** As it tips:
   - the flat concentric rings resolve into depth and become the tree's structure — outer ring → the spread of soil-and-air (the medium), middle ring → the tree's living body (learning), core → the trunk (the form);
-  - **soil** grows in at the base, dark and rich, roots reaching into it;
-  - **canopy** opens at the top, leaves in tan/`#c4a882`, a few fruit in `#b8553c`;
+  - **soil** grows in at the base, dark and rich (`#4f4636`), roots reaching into it;
+  - **canopy** opens at the top, leaves in `#6f8560` / `#54683f`, a few fruit in `#9c3b2e`;
   - the dead trunk from M5 is revealed to have been *part of this tree all along* — now with a canopy above and soil below, it stops looking dead, because it was never meant to stand alone;
   - **labels resolve in** for the first time: soil/air/light = the medium; the words "soil, air, light" appear as the only permitted statement.
   - one fruit falls, slowly, and lands in the soil. (This is the loop: what you learn returns to the human ground it came from. Do not explain it. Let it fall.)
@@ -448,13 +509,15 @@ Keep them as glints, not blocks. Never more than a clause. Never in the main col
 
 ---
 
-# PART SIX — OPEN DECISIONS (still yours to make)
+# PART SIX — OPEN DECISIONS
 
-1. **The reveal pace in M7** — show all three answers at once (cleaner) or one at a time with a breath between (more affecting, slight sentimentality risk). Leaning all-at-once.
-2. **M3 detail** — do we let the player hover/expand a row to see "off-task event → drawing in margin," making the buried heart findable, or keep it fully buried? Leaning fully buried.
-3. **Music entry** — does any music play under M1, or does the first sound arrive only with Maya in M2, so warmth and sound arrive together? Leaning sound-with-Maya.
-4. **The opening rings** — fully abstract/target-like, or faintly tree-suggestive so the ending reveal has a "of course" rather than a "wait, what"? Leaning fully abstract, trusting the tip to land it.
+1. **The reveal pace in M7** — *Resolved (as built):* all three answers shown at once, plain and unflourished.
+2. **M3 detail** — *Resolved (as built):* the "14 off-task events flagged" line stays fully buried and unexplained. No hover-to-expand.
+3. **Music entry** — *Still open.* Sound is not yet built. Leaning sound-with-Maya (first sound arrives in M2, not under M1).
+4. **The opening rings** — *Resolved (as built):* fully abstract. The M1 rings are cold pencil-grey concentric circles with faint coordinate ticks and a dark core dot — no green, no life — trusting the M8 tip to land it.
 5. **Doodle at the end** — confirmed untouched. (Decided.)
+
+**Still remaining to build:** data persistence (currently in-memory + console only), sound, and the IRB determination (see Part Five).
 
 ---
 

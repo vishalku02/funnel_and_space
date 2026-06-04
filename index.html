@@ -3,1128 +3,635 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>What is education for?</title>
+<title>On Building Fish Eyes for Learning</title>
+<!-- On Building Fish Eyes for Learning — an explorable on the learning-theory camps and the fish-eye lens. -->
 <style>
-  :root {
-    --page: #f8f8f5;
-    --page-edge: #ece9e1;
-    --page-edge-deep: #e0ddd3;
-    --ink: #1f1d1a;
-    --bark: #6b5d4f;
-    --pencil: #9a948a;
-    --pencil-faint: #b8b2a8;
-    --sage: #5f7355;
-    --fruit: #9c3b2e;
-    --rule: #ddd8cd;
-
-    --soil: #4f4636;
-    --soil-light: #6a5d49;
-    --leaf: #6f8560;
-    --leaf-deep: #54683f;
-    --trunk-live: #6b5d4f;
-    --trunk-dry: #8d8478;
-    --trunk-dry-edge: #6f675c;
-    --sun: #c0993f;
-
-    --desk-light: #34362f;
-    --desk-dark: #21221c;
-
-    --cold-bg: #e8eae7;
-    --cold-text: #515b57;
-    --cold-mid: #7d8a86;
-    --cold-rule: #c8cdc8;
-    --cold-drained: #86807a;
-
-    --graphite: #46423c;
+  :root{
+    /* dreamier botanical — misted green-white, ink lifted off black, one piercing accent */
+    --page:#eef1ea;          /* misted green-white "air" */
+    --haze:#e4e9df;          /* periphery sinks into this */
+    --ink:#33302b;           /* soft dark, never pure black (keeps margins legible) */
+    --bark:#6b6253;          /* secondary text */
+    --glint:#8a8478;         /* margin annotations — quieter than body, still readable */
+    --glint-rule:#cdd3c4;
+    --sage:#5f7355;          /* the anchor green */
+    --sage-soft:#8fa382;     /* its dreaming partner, for washes/glows */
+    --fruit:#9c3b2e;         /* the ONE saturated signal — kept sharp */
+    --rule:#d6dccd;
+    --line:#b9b3a6;          /* thin ink frame */
+    --line-soft:#cdd3c4;
+    --bloom:rgba(143,163,130,0.22);   /* soft halo behind focused things */
+    --cold-bg:#dfe4e4;       /* the cold screen, drained */
+    --cold-ink:#566;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(120% 60% at 50% 0%, #f2f4ee 0%, var(--page) 45%, var(--haze) 100%);
+    color:var(--ink);
+    font-family:Georgia,'Iowan Old Style','Times New Roman',serif;
+    font-size:19px; line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .scaffold-tag{
+    position:fixed; top:10px; right:12px; z-index:50;
+    font-family:system-ui,sans-serif; font-size:9.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--glint); background:rgba(238,241,234,.8); border:1px solid var(--glint-rule);
+    padding:4px 9px; border-radius:2px; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
   }
 
-  * { box-sizing: border-box; }
+  /* ── wide field; blocks ride a reading measure but step left/right as you descend ── */
+  .flow{ max-width:1140px; margin:0 auto; padding:0 40px; }
+  section.beat{ min-height:62vh; padding:8vh 0; position:relative; }
+  .measure{ max-width:560px; }                 /* comfortable reading width */
+  .at-left   { margin-right:auto; }
+  .at-center { margin-left:auto; margin-right:auto; text-align:left; }
+  .at-right  { margin-left:auto; }
+  .step-in   { margin-left:clamp(0px,8vw,140px); }   /* the Wattenberger "stepping down" */
+  .step-in-2 { margin-left:clamp(0px,16vw,260px); }
 
-  html, body {
-    margin: 0;
-    height: 100%;
-    overflow: hidden;
-    background: var(--desk-dark);
-    color: var(--ink);
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 18px;
-    line-height: 1.65;
+  .kicker{ font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--sage); margin-bottom:14px; }
+  h1{ font-weight:normal; font-size:clamp(34px,6vw,56px); line-height:1.05; letter-spacing:-.02em; margin:0 0 18px; }
+  h2{ font-weight:normal; font-size:clamp(24px,4vw,34px); line-height:1.15; margin:0 0 16px; }
+  h3{ font-weight:normal; font-size:21px; color:var(--sage); margin:0 0 8px; }
+  p{ margin:0 0 1.1em; }
+  .lede{ font-size:22px; line-height:1.55; color:var(--bark); }
+  .dim{ color:var(--bark); }
+  .write{ color:var(--fruit); font-family:system-ui,sans-serif; font-size:12px; letter-spacing:.04em;
+    border:1px dashed #c9a59e; border-radius:4px; padding:1px 6px; }
+
+  /* figures break into the open space beside the prose */
+  .fig{ border:1px dashed var(--glint-rule); border-radius:2px; background:rgba(255,255,255,.35);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    color:var(--glint); font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; line-height:1.7; padding:20px; }
+  .fig small{ display:block; text-transform:none; letter-spacing:0; font-size:12px; color:var(--bark); margin-top:8px; font-family:Georgia,serif; font-style:italic; }
+  .fig.wide{ width:100%; aspect-ratio:16/9; margin:1.4em 0; }
+  .fig.scene{ width:min(100%,460px); aspect-ratio:4/3; margin:0.6em 0; }
+  .fig.tall{ width:min(100%,420px); aspect-ratio:3/4; margin:0.6em 0; }
+
+  /* margin glints — true margin on wide screens, inline on narrow */
+  .glint{ font-style:italic; color:var(--glint); font-size:14px; line-height:1.5;
+    border-left:1px solid var(--glint-rule); padding-left:12px; max-width:240px; }
+  @media(min-width:1040px){
+    .glint.aside{ position:absolute; right:-8px; width:240px; transform:translateX(100%); padding-left:0; padding-right:14px; border-left:none; border-right:1px solid var(--glint-rule); text-align:right; }
   }
+  .glint b{ color:var(--bark); font-style:normal; font-weight:normal; }
 
-  #desk {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(ellipse at 50% 42%, var(--desk-light) 0%, var(--desk-dark) 78%);
-    transition: background 0.45s ease;
+  /* the cold open — Maya alone, drained */
+  .cold{ background:var(--cold-bg); color:var(--cold-ink); border-radius:2px; padding:34px 36px; margin:1em 0; }
+  .cold .kicker{ color:var(--cold-ink); opacity:.7; }
+  .cold p{ font-family:'Courier New',monospace; font-size:15px; }
+
+  /* checklist (each camp's "what help would you give her?") */
+  .checklist{ list-style:none; margin:1em 0 0; }
+  .checklist li{ margin:.5em 0; }
+  .checklist label{ display:flex; gap:12px; align-items:flex-start; cursor:pointer; }
+  .checklist input{ margin-top:6px; accent-color:var(--sage); width:16px; height:16px; flex:0 0 auto; }
+  .checklist .opt{ color:var(--ink); }
+  .selectall-note{ font-size:13px; color:var(--glint); font-style:italic; margin-top:10px; min-height:1.2em; }
+
+  /* hypothesis / reflection box */
+  /* quiet, non-gating save confirm */
+  .save-row{ display:flex; align-items:center; gap:14px; margin-top:12px; }
+  .save-btn{ font-family:system-ui,sans-serif; font-size:13px; letter-spacing:.02em;
+    color:var(--ink); background:rgba(255,255,255,.5); border:1px solid var(--line);
+    padding:7px 16px; border-radius:2px; cursor:pointer; transition:border-color .2s, background .2s, color .2s; }
+  .save-btn:hover{ border-color:var(--sage); }
+  .save-btn:disabled{ cursor:default; opacity:.55; }
+  .save-btn.saved{ border-color:var(--sage); color:var(--sage); background:var(--bloom); }
+  .save-note{ font-family:system-ui,sans-serif; font-size:12px; color:var(--glint); font-style:italic;
+    opacity:0; transition:opacity .35s; }
+  .save-note.show{ opacity:1; }
+
+  .ask{ margin:1.2em 0; }
+  .ask textarea{ width:100%; max-width:600px; background:rgba(255,255,255,.5); border:none;
+    border-bottom:1px solid var(--bark); color:var(--ink); font-family:Georgia,serif; font-size:19px;
+    line-height:1.6; padding:10px 4px; resize:vertical; min-height:3em; outline:none; }
+  .ask textarea:focus{ border-bottom-color:var(--sage); }
+
+  /* ── the fish-eye mechanic: four around a center (tunnel-first, square ink) ── */
+  .fisheye{ width:min(100%,620px); margin:1.4em auto; }
+  .stage{ position:relative; width:100%; aspect-ratio:1/1; }
+
+  .lcard{ background:rgba(255,255,255,.55); border:1px solid var(--line); border-radius:2px;
+    padding:13px 14px; text-align:center; will-change:transform,opacity; transition:opacity .6s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1), border-color .3s; }
+  .lcard .pn{ font-family:system-ui,sans-serif; font-size:10.5px; letter-spacing:.08em; color:var(--bark); }
+  .lcard .q{ font-style:italic; color:var(--bark); font-size:14px; margin:4px 0 9px; }
+  .lcard .slot{ width:100%; aspect-ratio:4/3; border:1px dashed var(--line-soft); border-radius:1px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; }
+  .lcard .slot img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .lcard .d{ font-size:12.5px; line-height:1.45; color:var(--ink); margin-top:9px; }
+
+  .ctr{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:46%; z-index:5; border:1.5px solid var(--sage); background:#fff;
+    transition:opacity .28s ease, transform .6s cubic-bezier(.22,1,.36,1); }
+  .ctr .pn{ color:var(--sage); font-weight:700; }
+
+  .lens{ position:absolute; width:30%; z-index:4; }
+  .lens .d{ display:none; }
+  .lens.tl{top:0;left:0;} .lens.tr{top:0;right:0;} .lens.bl{bottom:0;left:0;} .lens.br{bottom:0;right:0;}
+
+  /* tunnel (default): periphery collapsed toward center, ready to unfold */
+  .stage.tunnel .lens{ opacity:0; pointer-events:none; }
+  .stage.tunnel .lens.tl{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:bottom right; }
+  .stage.tunnel .lens.tr{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:bottom left; }
+  .stage.tunnel .lens.bl{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:top right; }
+  .stage.tunnel .lens.br{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:top left; }
+  /* fish-eye on: periphery warps in, present-not-gone, clickable */
+  .stage.fish .lens{ cursor:pointer; opacity:.7; }
+  .stage.fish .lens.near{ opacity:.85; } .stage.fish .lens.far{ opacity:.6; }
+  .stage.fish .lens.is-focus{ opacity:.3; border-style:dashed; }
+  .stage.fish .lens.tl{ transform:perspective(700px) rotateY(7deg)  rotateX(5deg)  scale(.97); transform-origin:bottom right; }
+  .stage.fish .lens.tr{ transform:perspective(700px) rotateY(-7deg) rotateX(5deg)  scale(.97); transform-origin:bottom left; }
+  .stage.fish .lens.bl{ transform:perspective(700px) rotateY(7deg)  rotateX(-5deg) scale(.97); transform-origin:top right; }
+  .stage.fish .lens.br{ transform:perspective(700px) rotateY(-7deg) rotateX(-5deg) scale(.97); transform-origin:top left; }
+  .stage.fish .ctr{ transform:translate(-50%,-50%) scale(1.045); }
+
+  /* faint always-on corner arrow cue (no wording) */
+  .lens .cue{ position:absolute; top:6px; right:7px; opacity:0; transition:opacity .3s; color:var(--sage); pointer-events:none; }
+  .stage.fish .lens:not(.is-focus) .cue{ opacity:.55; }
+  .lens .cue svg{ display:block; }
+
+  /* hover/keyboard lifts a lens toward clarity — previews the click */
+  .stage.fish .lens:not(.is-focus):hover,
+  .stage.fish .lens:not(.is-focus):focus-visible{
+    opacity:1 !important; border-color:var(--sage);
+    transform:perspective(700px) scale(1.05) !important; z-index:6; }
+  .stage.fish .lens:not(.is-focus):hover .cue,
+  .stage.fish .lens:not(.is-focus):focus-visible .cue{ opacity:1; }
+
+  /* acquire control (single toggle, square ink) */
+  .acquire{ display:inline-flex; align-items:center; gap:11px; cursor:pointer; margin:18px auto 0;
+    background:rgba(255,255,255,.5); border:1px solid var(--line); border-radius:2px;
+    padding:11px 18px; font-family:system-ui,sans-serif; font-size:12px; letter-spacing:.08em; color:var(--ink);
+    transition:border-color .25s, background .25s; }
+  .acquire:hover{ border-color:var(--sage); }
+  .acquire.on{ border-color:var(--sage); color:var(--sage); background:rgba(95,115,85,.07); }
+  .acquire svg{ display:block; }
+  .read{ text-align:center; font-size:14px; color:var(--bark); margin-top:12px; min-height:3em; line-height:1.5; }
+  .read .rec{ display:block; font-style:italic; color:var(--sage); font-size:12.5px; margin-top:6px; }
+
+  /* ── product sort (the break: discover the tilt) ── */
+  .sort{ width:min(100%,820px); margin:1.2em auto; }
+  .bins{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+  .bin{ border:1px solid var(--line); border-radius:2px; min-height:120px; padding:10px; background:rgba(255,255,255,.3); }
+  .bin h5{ font-family:system-ui,sans-serif; font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--bark); font-weight:normal; margin-bottom:8px; text-align:center; }
+  .bin .count{ display:block; text-align:center; font-size:11px; color:var(--glint); margin-top:6px; }
+  .chip{ display:inline-block; margin:3px; padding:6px 11px; border:1px solid var(--line); border-radius:2px;
+    background:#fff; font-size:13px; cursor:pointer; transition:border-color .2s, background .2s; }
+  .chip:hover{ border-color:var(--sage); }
+  .chip.placed{ background:var(--page); }
+  .tray{ text-align:center; margin-bottom:14px; min-height:40px; }
+  .sort-note{ font-size:13px; color:var(--glint); font-style:italic; text-align:center; min-height:1.4em; }
+  .sort-help{ font-family:system-ui,sans-serif; font-size:11px; color:var(--glint); text-align:center; margin-bottom:10px; letter-spacing:.03em; }
+
+  /* tree closing bun */
+  .tree-close{ text-align:center; }
+  .closing-line{ font-size:24px; color:var(--bark); font-style:italic; margin-top:1em; }
+
+  .cite{ font-size:13px; color:var(--glint); font-style:italic; }
+  blockquote{ border-left:2px solid var(--rule); padding:6px 0 6px 18px; margin:1.2em 0; color:var(--bark); font-style:italic; }
+
+  @media(max-width:720px){
+    .flow{ padding:0 22px; } .step-in,.step-in-2{ margin-left:0; }
+    .bins{ grid-template-columns:1fr 1fr; }
+    body{ font-size:18px; }
   }
+  @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} *{transition:none!important;} }
 
-  .book {
-    position: relative;
-    width: min(92vw, 600px);
-    height: min(88vh, 784px);
-    perspective: 2200px;
-    filter: drop-shadow(0 20px 44px rgba(0,0,0,0.5));
-  }
-  .book::after,
-  .book::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 2px;
-    z-index: -1;
-  }
-  .book::after { transform: translate(6px, 8px); background: var(--page-edge); z-index: -1; }
-  .book::before { transform: translate(11px, 15px); background: var(--page-edge-deep); z-index: -2; }
+  .art{ display:block; width:100%; height:auto; border-radius:2px; }
+  .art.scene{ width:min(100%,460px); margin:0.6em 0; }
+  .art.wide{ width:100%; margin:1.4em 0; }
+  .art.tall{ width:min(100%,460px); margin:0.6em auto; }
+  figure.art-fig{ margin:0; }
+  figure.art-fig figcaption{ font-family:system-ui,sans-serif; font-size:11px; color:var(--glint); margin-top:6px; font-style:italic; }
 
-  .page {
-    position: absolute;
-    inset: 0;
-    display: none;
-    flex-direction: column;
-    background: var(--page);
-    border-radius: 2px;
-    transform-origin: left center;
-    backface-visibility: hidden;
-    overflow: hidden;
-  }
-  .page.active { display: flex; z-index: 2; }
-  .page.below  { display: flex; z-index: 1; }
-  .page.turning { z-index: 3; animation: turn-forward 0.9s ease-in forwards; }
-
-  @keyframes turn-forward {
-    0%   { transform: rotateY(0deg);    box-shadow: 0 0 0 rgba(0,0,0,0); }
-    100% { transform: rotateY(-168deg); box-shadow: 26px 0 66px rgba(0,0,0,0.28); }
-  }
-
-  .page-inner {
-    flex: 1;
-    overflow-y: auto;
-    padding: 58px 58px 30px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--pencil-faint) transparent;
-  }
-  .page-inner::-webkit-scrollbar { width: 6px; }
-  .page-inner::-webkit-scrollbar-thumb { background: var(--pencil-faint); border-radius: 3px; }
-
-  .folio {
-    flex: 0 0 auto;
-    text-align: center;
-    padding-bottom: 20px;
-    font-family: Georgia, serif;
-    font-size: 13px;
-    font-style: italic;
-    color: var(--pencil);
-    letter-spacing: 0.08em;
-  }
-  .page[data-folio] .folio::before { content: '· ' attr(data-folio) ' ·'; }
-
-  p { margin: 0 0 1.1em; }
-  .lede { margin-bottom: 1.5em; }
-
-  .question {
-    font-size: 29px;
-    line-height: 1.42;
-    margin: 0 0 0.8em;
-  }
-
-  .hint {
-    font-family: system-ui, sans-serif;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--pencil);
-    margin-top: 0.4em;
-  }
-
-  .stage-instruction { font-style: italic; color: var(--bark); margin-top: 1.6em; }
-  .quiet-note { font-size: 16px; color: var(--bark); }
-
-  input[type="text"],
-  textarea {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--bark);
-    color: var(--ink);
-    font-family: Georgia, serif;
-    font-size: 20px;
-    line-height: 1.5;
-    padding: 8px 2px;
-    resize: none;
-  }
-  input[type="text"]:focus,
-  textarea:focus { outline: none; border-bottom-color: var(--sage); }
-  textarea { min-height: 2.6em; }
-
-  .actions { margin-top: 1.8em; display: flex; gap: 16px; align-items: center; }
-
-  button {
-    font-family: system-ui, sans-serif;
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink);
-    background: transparent;
-    border: 1px solid var(--bark);
-    border-radius: 2px;
-    padding: 9px 18px;
-    cursor: pointer;
-    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-  }
-  button:hover { background: #efeee7; border-color: var(--sage); }
-  button.quiet { border-color: transparent; color: var(--pencil); }
-  button.quiet:hover { background: transparent; color: var(--bark); }
-  button.tiny {
-    border: none;
-    padding: 4px 2px;
-    font-size: 10px;
-    color: var(--pencil);
-    letter-spacing: 0.12em;
-  }
-  button.tiny:hover { background: transparent; color: var(--bark); }
-
-  .placeholder {
-    border: 1px dashed var(--pencil-faint);
-    border-radius: 3px;
-    color: var(--pencil);
-    font-family: system-ui, sans-serif;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    text-align: center;
-    padding: 38px 16px;
-    margin: 1.4em 0;
-  }
-  .placeholder.tall { padding: 64px 16px; }
-
-  .margin-glint {
-    font-family: Georgia, serif;
-    font-size: 12.5px;
-    font-style: italic;
-    color: var(--pencil);
-    border-left: 1px solid var(--rule);
-    padding-left: 12px;
-    margin-top: 2.4em;
-  }
-
-  .support-list { list-style: none; padding: 0; margin: 0.4em 0 1.6em; }
-  .support-list li { margin: 0.6em 0; }
-  .support-list label { cursor: pointer; display: flex; gap: 12px; align-items: baseline; }
-  .support-list input { accent-color: var(--sage); margin-top: 2px; }
-
-  .checklist { list-style: none; padding: 0; margin: 0.6em 0 1.2em; }
-  .checklist li { display: flex; gap: 12px; align-items: baseline; margin: 0.55em 0; }
-  .box {
-    flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-    border: 1.5px solid var(--bark);
-    border-radius: 2px;
-    position: relative;
-    top: 3px;
-  }
-  .box.checked { background: var(--sage); border-color: var(--sage); }
-  .box.checked::after {
-    content: '✓';
-    position: absolute;
-    inset: -3px 0 0 1px;
-    color: var(--page);
-    font-size: 12px;
-    line-height: 1;
-  }
-  .checklist li.empty span:last-child { color: var(--bark); }
-
-  .consent-row { display: flex; flex-direction: column; gap: 6px; margin: 1.4em 0; }
-  .consent-row label { font-style: italic; color: var(--bark); font-size: 16px; }
-
-  .recall-block { margin: 1.4em 0; }
-  .recall-label { color: var(--bark); font-style: italic; margin-bottom: 0.1em; }
-  .recall-answer {
-    font-size: 22px;
-    margin-bottom: 1.5em;
-    padding-left: 18px;
-    border-left: 2px solid var(--sage);
-  }
-  .recall-answer.empty { color: var(--pencil); font-style: italic; border-left-color: var(--rule); }
-  .recall-close { font-size: 22px; margin-top: 0.6em; }
-
-  .credit-card {
-    margin-top: 3em;
-    padding: 18px;
-    border: 1px solid var(--rule);
-    border-radius: 3px;
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--bark);
-  }
-
-  /* the doodle */
-  .doodle-wrap { margin: 1.2em 0 0.6em; max-width: 320px; }
-  #doodle-canvas {
-    width: 100%;
-    height: 170px;
-    display: block;
-    background: #fcfcfa;
-    border: 1px solid #e6e0d4;
-    border-radius: 3px;
-    touch-action: none;
-    cursor: crosshair;
-  }
-  .doodle-tools { display: flex; gap: 14px; margin-top: 6px; }
-  .doodle-settled {
-    max-width: 320px;
-    margin: 1.2em 0 0.6em;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    color: var(--pencil);
-    font-style: italic;
-    font-size: 15px;
-  }
-  .doodle-settled .scrap { flex: 0 0 auto; }
-
-  #doodle-margin {
-    position: absolute;
-    top: 22px;
-    right: 18px;
-    width: 66px;
-    z-index: 5;
-    padding: 6px;
-    background: var(--page);
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    transform: rotate(-4deg);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-    display: none;
-  }
-  #doodle-margin svg, #doodle-margin img { display: block; width: 100%; height: auto; }
-
-  .board { display: flex; gap: 22px; align-items: flex-start; margin: 1.2em 0; flex-wrap: wrap; }
-  .board .placeholder { flex: 1 1 200px; margin: 0; }
-  .board-doodle {
-    flex: 0 0 auto;
-    width: 150px;
-    padding: 12px;
-    background: var(--page);
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    transform: rotate(3deg);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.14);
-  }
-  .board-doodle svg, .board-doodle img { display: block; width: 100%; height: auto; }
-
-  /* cold system — M3 only: the same world drained of life */
-  .page.cold { background: var(--cold-bg); color: var(--cold-text); }
-  .page.cold .page-inner {
-    font-family: 'Courier New', Courier, monospace;
-    display: block;
-    padding: 40px 46px;
-  }
-  .page.cold .drained { color: var(--cold-drained); }
-  .page.cold button { color: var(--cold-text); border-color: var(--cold-rule); }
-  .page.cold button:hover { background: #dfe3e0; border-color: var(--cold-mid); }
-
-  .dash-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 16px;
-    border-bottom: 1px solid var(--cold-rule);
-    padding-bottom: 14px;
-    margin-bottom: 22px;
-  }
-  .dash-brand { font-size: 15px; letter-spacing: 0.03em; }
-  .dash-brand b { letter-spacing: 0.06em; }
-  .dash-brand .ver { color: var(--cold-mid); font-size: 12px; }
-  .dash-meta { display: flex; gap: 18px; align-items: center; font-size: 12px; color: var(--cold-mid); flex-wrap: wrap; justify-content: flex-end; }
-  .dash-live { display: flex; gap: 7px; align-items: center; }
-  .dash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cold-mid); animation: dash-pulse 1.8s ease-in-out infinite; }
-  @keyframes dash-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
-
-  .dash-body { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-  .dash-col { display: flex; flex-direction: column; gap: 18px; }
-
-  .dash-kpis { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-  .kpi { border: 1px solid var(--cold-rule); border-radius: 2px; padding: 11px 12px; }
-  .kpi .label { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cold-mid); }
-  .kpi .value { font-size: 21px; margin-top: 5px; line-height: 1.1; }
-  .kpi .sub { font-size: 11px; color: var(--cold-drained); margin-top: 3px; }
-  .kpi.flag .value { color: var(--cold-drained); }
-
-  .bar-label { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cold-mid); margin-bottom: 7px; }
-  .bar { height: 10px; background: #d8ddd9; border-radius: 2px; position: relative; }
-  .bar-fill { height: 100%; width: 41%; background: var(--cold-mid); border-radius: 2px 0 0 2px; }
-  .bar-target { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--cold-drained); }
-  .bar-note { font-size: 11px; color: var(--cold-mid); margin-top: 7px; display: flex; justify-content: space-between; }
-
-  .spark { border: 1px solid var(--cold-rule); border-radius: 2px; padding: 11px 12px; }
-  .spark svg { display: block; width: 100%; height: 42px; }
-
-  .panel { border: 1px solid var(--cold-rule); border-radius: 2px; padding: 13px 14px; }
-  .panel h4 { margin: 0 0 8px; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cold-mid); font-weight: normal; }
-  .panel p { margin: 0; font-size: 13.5px; line-height: 1.55; }
-  .panel .quote { color: var(--cold-text); }
-  .panel .code { font-size: 13px; line-height: 1.7; }
-  .panel .comment { color: var(--cold-mid); }
-  .panel ul { margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.7; }
-  .panel .prob { font-size: 18px; margin: 2px 0 6px; }
-
-  .page.cold .actions { margin-top: 26px; }
-
-  @media (max-width: 640px) {
-    .dash-body { grid-template-columns: 1fr; }
-    .dash-kpis { grid-template-columns: 1fr 1fr; }
-  }
-
-  body.cold-mode #desk { background: var(--cold-bg); }
-  body.cold-mode .book { width: 100vw; height: 100vh; perspective: none; filter: none; }
-  body.cold-mode .book::after,
-  body.cold-mode .book::before { display: none; }
-  body.cold-mode .page.cold { border-radius: 0; }
-  body.cold-mode #doodle-margin { display: none !important; }
-
-  /* ───── the rings (M1), the converging paths (M4d), the dead trunk (M5) ───── */
-  .rings-frame, .paths-frame, .trunk-frame { display: flex; justify-content: center; margin: 1.4em 0; }
-  .rings-art { width: 300px; max-width: 78%; height: auto; }
-  .paths-art { width: 320px; max-width: 84%; height: auto; }
-  .trunk-art { width: 200px; max-width: 56%; height: auto; }
-
-  @keyframes ringDraw { to { stroke-dashoffset: 0; } }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-  .rings-art .ring-core { opacity: 0; }
-  .rings-art.draw .ring { animation: ringDraw 1.2s ease forwards; }
-  .rings-art.draw .ring:nth-of-type(1) { animation-delay: 0.1s; }
-  .rings-art.draw .ring:nth-of-type(2) { animation-delay: 0.5s; }
-  .rings-art.draw .ring:nth-of-type(3) { animation-delay: 0.9s; }
-  .rings-art.draw .ring-core { animation: fadeIn 0.6s ease 1.5s forwards; }
-  .rings-art.snap .ring { animation: none; stroke-dashoffset: 0; }
-  .rings-art.snap .ring-core { animation: none; opacity: 1; }
-
-  .paths-art .paths, .paths-art .paths-trunk { opacity: 0; transition: opacity 1.3s ease; }
-  .paths-art.draw .paths { opacity: 0.85; }
-  .paths-art.draw .paths-trunk { opacity: 1; transition-delay: 0.9s; }
-  .paths-art.snap .paths { opacity: 0.85; transition: none; }
-  .paths-art.snap .paths-trunk { opacity: 1; transition: none; }
-
-  /* ───── the reveal (M8): rings tip into ground, trunk rises, canopy blooms ───── */
-  .tree-scene {
-    position: relative;
-    width: min(380px, 100%);
-    margin: 0.4em auto 1.2em;
-    aspect-ratio: 440 / 520;
-    perspective: 1100px;
-    overflow: visible;
-  }
-  .tree-scene .rings-layer,
-  .tree-scene .tree-layer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-
-  .rings-layer { transform-origin: 50% 45%; transition: transform 1.6s ease, opacity 1.6s ease; }
-  .soil-grp, .roots-grp, .fruit-grp { opacity: 0; transition: opacity 1.1s ease; }
-  .sun-grp { opacity: 0; transition: opacity 1.2s ease; }
-  .trunk-grp { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(0); transition: transform 1.3s cubic-bezier(.2,.7,.2,1); }
-  .canopy-grp { transform-box: fill-box; transform-origin: 50% 90%; transform: scale(0.12); opacity: 0; transition: transform 1.6s cubic-bezier(.2,.7,.2,1), opacity 1.2s ease; }
-  .fruit-fall { transform-box: fill-box; transform-origin: center; opacity: 0; }
-  .tree-caption, .tree-sub { opacity: 0; transition: opacity 1.1s ease; }
-  .tree-sub { font-size: 16px; color: var(--bark); }
-
-  @keyframes fruitFall {
-    0% { transform: translateY(0); opacity: 1; }
-    78% { opacity: 1; }
-    100% { transform: translateY(196px); opacity: 0.92; }
-  }
-
-  #m8-stage.revealed .rings-layer { transform: translateY(146px) rotateX(76deg) scale(1.05); opacity: 0.36; }
-  #m8-stage.revealed .soil-grp { opacity: 1; transition-delay: 1.2s; }
-  #m8-stage.revealed .trunk-grp { transform: scaleY(1); transition-delay: 1.4s; }
-  #m8-stage.revealed .roots-grp { opacity: 1; transition-delay: 1.9s; }
-  #m8-stage.revealed .sun-grp { opacity: 0.8; transition-delay: 3.1s; }
-  #m8-stage.revealed .canopy-grp { transform: scale(1); opacity: 1; transition-delay: 2.3s; }
-  #m8-stage.revealed .fruit-grp { opacity: 1; transition-delay: 3.4s; }
-  #m8-stage.revealed .fruit-fall { animation: fruitFall 1.9s ease-in 4s forwards; }
-  #m8-stage.revealed .tree-caption { opacity: 1; transition-delay: 4.4s; }
-  #m8-stage.revealed .tree-sub { opacity: 1; transition-delay: 4.8s; }
-
-  #m8-stage.snap .rings-layer { transition: none; transform: translateY(146px) rotateX(76deg) scale(1.05); opacity: 0.36; }
-  #m8-stage.snap .soil-grp,
-  #m8-stage.snap .roots-grp,
-  #m8-stage.snap .fruit-grp,
-  #m8-stage.snap .tree-caption,
-  #m8-stage.snap .tree-sub { transition: none; opacity: 1; }
-  #m8-stage.snap .sun-grp { transition: none; opacity: 0.8; }
-  #m8-stage.snap .trunk-grp { transition: none; transform: scaleY(1); }
-  #m8-stage.snap .canopy-grp { transition: none; transform: scale(1); opacity: 1; }
-
-  .board-tree {
-    flex: 0 0 auto;
-    width: 168px;
-    padding: 12px;
-    background: var(--page);
-    border: 1px solid var(--rule);
-    border-radius: 2px;
-    transform: rotate(-2deg);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  }
-  .board-tree svg { display: block; width: 100%; height: auto; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .page.turning { animation: none; }
-  }
 </style>
 </head>
 <body>
-<div id="desk">
-  <div class="book" id="book">
+<div class="flow">
 
-    <section class="page" data-screen="consent">
-      <div class="page-inner">
-        <p class="lede">One optional thing before we start.</p>
-        <p>I'm studying how people's view of education changes as they move through this. If you tell me what you do, I'll keep that along with the few lines you write here. No name. Nothing else.</p>
-        <p>You can skip this and everything works exactly the same. You can read the why at the end.</p>
-        <div class="consent-row">
-          <label for="profession">I do this:</label>
-          <input type="text" id="profession" autocomplete="off">
-        </div>
-        <div class="actions">
-          <button data-consent="yes" data-next>continue</button>
-          <button class="quiet" data-consent="no" data-next>skip</button>
+  <!-- ════════ OPENING BUN — the cold learning memory ════════ -->
+  <section class="beat" data-scene="cold-open">
+    <div class="measure at-left">
+      <p class="kicker">On building fish eyes for learning</p>
+      <h1>Everyone has their own view of education.</h1>
+      <p class="lede">What comes to your mind when you think about education?</p>
+      <div class="ask">
+        <textarea data-capture="view0" rows="3" placeholder=""></textarea>
+        <div class="save-row">
+          <button type="button" class="save-btn" data-save="view0" disabled>save</button>
+          <span class="save-note" data-note="view0">saved. scroll on whenever you're ready.</span>
         </div>
       </div>
-      <div class="folio"></div>
-    </section>
+    </div>
+    <div class="step-in" style="width:100%;margin:1.4em 0;"><figure class="art-fig"><img class="art wide" src="images/cold-open.jpg" alt="A child alone at a desk, lit only by a screen."></figure></div>
+  </section>
 
-    <section class="page" data-screen="m1-far-question" data-folio="1">
-      <div class="page-inner">
-        <p class="question">What is education for?</p>
-        <div class="rings-frame">
-          <svg class="rings-art" id="rings-m1" viewBox="0 0 360 360" aria-hidden="true">
-            <g class="schematic" stroke="var(--pencil-faint)" stroke-width="0.8">
-              <line x1="180" y1="22" x2="180" y2="42"/>
-              <line x1="180" y1="318" x2="180" y2="338"/>
-              <line x1="22" y1="180" x2="42" y2="180"/>
-              <line x1="318" y1="180" x2="338" y2="180"/>
-            </g>
-            <g class="rings" fill="none" stroke="var(--pencil)" stroke-width="1.4">
-              <circle class="ring" cx="180" cy="180" r="150" style="stroke-dasharray:942;stroke-dashoffset:942"/>
-              <circle class="ring" cx="180" cy="180" r="100" style="stroke-dasharray:628;stroke-dashoffset:628"/>
-              <circle class="ring" cx="180" cy="180" r="54" style="stroke-dasharray:339;stroke-dashoffset:339"/>
-            </g>
-            <circle class="ring-core" cx="180" cy="180" r="6" fill="var(--ink)"/>
-          </svg>
-        </div>
-        <textarea data-capture="answer1" rows="2"></textarea>
-        <p class="hint">press enter when you're ready</p>
-        <div class="actions"><button data-next>continue</button></div>
+  <!-- both can teach the same fact -->
+  <section class="beat" data-scene="positionality">
+    <div class="measure at-right">
+      <p>A lot of brilliant people are working on technologies for education. Building tutors that adapt to each student, designing products that drill skills to mastery, measuring what works and what doesn't.</p>
+      <p>As researchers in this field, when we hear learning put this way, something feels off. At the same time, nothing seems wrong with this perspective. We are all trying to improve learning, aren't we?</p>
+      <p class="glint"><b>Gert Biesta</b> calls this the "learnification" of education: when learning crowds out the rest of what it was for.</p>
+    </div>
+  </section>
+
+  <!-- ════════ MEET MAYA — the child-sized version ════════ -->
+  <section class="beat" data-scene="meet-maya">
+    <div class="measure at-left">
+      <h2>Meet Maya. She's ten.</h2>
+      <p>She likes being outside. She looks after things. The plants on the windowsill, the class guinea pig, her little brother. Lately she's been working through fractions. She gets the first few steps right almost every time, then reaches the same spot near the end and gets stuck.</p>
+    </div>
+    <div class="step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/meet-maya.jpg" alt="A child kneels outdoors, gently planting a small sprout in the soil with their bare hands."></figure></div>
+  </section>
+
+  <!-- ════════ FOUR CAMPS — pass one: focus. each = passage -> checklist ════════ -->
+
+  <section class="beat" data-scene="camp-behaviorist">
+    <div class="measure at-left">
+      <h3>What can she do?</h3>
+      <p>That's where behaviorists look. Learning is a change you can see and measure. Skills drilled and reinforced until they hold on their own.</p>
+      <p class="dim"><b>As a behaviorist, what help would you give Maya?</b></p>
+      <ul class="checklist" data-camp="behaviorist">
+        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">A Khan-Academy-style mastery platform that drills equivalent fractions until she's fluent</span></label></li>
+        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">Immediate right/wrong feedback on every step</span></label></li>
+        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">A clear mastery bar she can watch fill toward the goal</span></label></li>
+      </ul>
+      <p class="selectall-note" data-note="behaviorist"></p>
+    </div>
+    <div class="at-right" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-behaviorist.jpg" alt="Tightened to the hand and the screen: tiles into ¾, checkmark dots."></figure></div>
+  </section>
+
+  <section class="beat" data-scene="camp-cognitive">
+    <div class="measure at-right">
+      <h3>What does she understand?</h3>
+      <p>Cognitivists look under the behavior. Learning is what happens to the mind's machinery. Concepts, schemas, the way the pieces connect. They care about what one understands, not just what one can produce.</p>
+      <p class="dim"><b>If you were a cognitivist, what would you offer Maya?</b></p>
+      <ul class="checklist" data-camp="cognitive">
+        <li><label><input type="checkbox" data-help="cognitive"><span class="opt">A tutor that diagnoses the misconception keeping her stuck at the same spot</span></label></li>
+        <li><label><input type="checkbox" data-help="cognitive"><span class="opt">A visual that shows 3/4 and 6/8 as the same slice of the same whole</span></label></li>
+        <li><label><input type="checkbox" data-help="cognitive"><span class="opt">Problems sequenced to build the part-whole schema step by step</span></label></li>
+      </ul>
+      <p class="selectall-note" data-note="cognitive"></p>
+    </div>
+    <div class="at-left step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-cognitive.jpg" alt="Her head in profile; a light web of linked circles, ½ and ¼ joining toward ¾."></figure></div>
+  </section>
+
+  <section class="beat" data-scene="camp-situated">
+    <div class="measure at-left">
+      <h3>How does she participate?</h3>
+      <p>Situated and distributed cognition folks widen the frame. Learning isn't just in one's head. It is inherently social, rooted in real settings. Spread across the tools in one's hands, the people one works with, the activity one is part of.</p>
+      <p class="dim"><b>From a situated and distributed cognition perspective, what would you put in front of Maya?</b></p>
+      <ul class="checklist" data-camp="situated">
+        <li><label><input type="checkbox" data-help="situated"><span class="opt">A partner to split fraction tiles with and argue ¾ out loud</span></label></li>
+        <li><label><input type="checkbox" data-help="situated"><span class="opt">Measuring cups and water — ¼ cup, ½ cup, three of each</span></label></li>
+        <li><label><input type="checkbox" data-help="situated"><span class="opt">A small group cutting a paper "pizza" together and arguing over what's fair</span></label></li>
+      </ul>
+      <p class="selectall-note" data-note="situated"></p>
+    </div>
+    <div class="at-right" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-situated.jpg" alt="Two children at a table with fraction tiles between them, arguing it out."></figure></div>
+  </section>
+
+  <section class="beat" data-scene="camp-sociocultural">
+    <div class="measure at-right">
+      <h3>Whose knowledge counts?</h3>
+      <p>Sociocultural folks step outside the room entirely. Learning is cultural at its core, unfolding along many pathways, each one shaped by a community and its ways of knowing. It's never neutral—what constitutes knowledge, whose knowledge is represented, who one aspires to evolve with.</p>
+      <p class="dim"><b>What would a sociocultural lens ask of Maya's classroom?</b></p>
+      <ul class="checklist" data-camp="sociocultural">
+        <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">Fractions drawn from her world: how much guinea pig food is left in the bag, how to split a row of seedlings, how to share a snack fairly with her brother</span></label></li>
+        <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">A classroom where the way she'd explain it to her brother counts as a real explanation</span></label></li>
+        <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">A say in which problems get called the "real" ones</span></label></li>
+      </ul>
+      <p class="selectall-note" data-note="sociocultural"></p>
+    </div>
+    <div class="at-left step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-sociocultural.jpg" alt="The child at center; faint vignettes of kitchen, classroom, music, money on light threads."></figure></div>
+  </section>
+
+  <!-- the lens turn + Wattenberger, where the fish-eye is introduced (fish quoted only here) -->
+  <section class="beat" data-scene="lens-turn">
+    <div class="measure at-center">
+      <p>Each of them is true. None is the wrong way to look. The problem is that each one, left alone, is a crop, and the other views fall out of frame.</p>
+      <p>Amelia Wattenberger, writing about how we read, reaches for a camera bag.</p>
+      <blockquote>"A fish eye lens doesn't ask us to choose between focus and context."</blockquote>
+      <p>We are inspired by Amelia's point here: holding both the fine detail of a view and the big picture at once. The other views stay visible at the edges.</p>
+      <p>The honest part is that these four views do not always agree. One cannot stop choosing, but they can notice and situate to see where any one view sits inside the bigger picture. The fish-eye lens holds both at once.</p>
+      <p class="cite">Amelia Wattenberger, "Fish eyes," wattenberger.com/thoughts/fish-eye (2024).</p>
+    </div>
+  </section>
+
+  <!-- ════════ PASS TWO — the four held at once: the fish-eye mechanic ════════ -->
+  <section class="beat" data-scene="fisheye">
+    <div class="measure at-center">
+      <h2>Holding them all at once.</h2>
+    </div>
+    <div class="fisheye">
+      <div class="stage tunnel" id="stage">
+        <div class="lcard ctr" id="ctr"></div>
+        <!-- lenses injected by JS -->
       </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m2-meet-maya" data-folio="2">
-      <div class="page-inner">
-        <p>Meet Maya. She's ten.</p>
-        <p>She's a really hard worker. For three weeks she's been working through the same page in her homework on fractions.</p>
-        <p>She gets the first step right almost every time. But then she stops at the same place each time, just before the end. It's unfortunate, because lately in class she's stopped raising her hand.</p>
-        <p>In the corner of every worksheet, she draws.</p>
-        <p class="stage-instruction">Leave something in the corner with her.</p>
-        <div class="doodle-wrap" id="doodle-area">
-          <canvas id="doodle-canvas"></canvas>
-          <div class="doodle-tools">
-            <button class="tiny" data-clear-doodle>start over</button>
-            <button class="tiny" data-skip-doodle>skip</button>
-          </div>
-        </div>
-        <p class="question">What does Maya need right now?</p>
-        <textarea data-capture="answer2" rows="2"></textarea>
-        <div class="actions"><button data-next>continue</button></div>
-        <p class="margin-glint">"learnification" — Gert Biesta, on education shrinking until it means only "learning."</p>
+      <div style="text-align:center;">
+        <button class="acquire" id="acquire">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3">
+            <circle cx="10" cy="10" r="8"/><path d="M2 10 Q10 4 18 10 Q10 16 2 10Z"/>
+            <circle cx="10" cy="10" r="2.4" fill="currentColor" stroke="none"/>
+          </svg><span id="acquireLabel">put on the fish-eye lens</span>
+        </button>
       </div>
-      <div class="folio"></div>
-    </section>
+      <div class="read" id="read"></div>
+    </div>
+    <blockquote style="margin:1.5em auto 0;max-width:560px;">What made us uncomfortable was never the focus itself. It was failing to acknowledge that the other views were there too.<span class="cite" style="display:block;margin-top:.7em;font-style:normal;">— Vishal and Yoyo</span></blockquote>
+  </section>
 
-    <section class="page cold" data-screen="m3-system-view" data-folio="3">
-      <div class="page-inner">
-        <div class="dash-head">
-          <div class="dash-brand"><b>MathBuddy</b> <span class="ver">3.2</span></div>
-          <div class="dash-meta">
-            <span>Maya R. · Learner #4417 · Grade 5</span>
-            <span>Unit 4.3 — Equivalent Fractions</span>
-            <span>Session #12</span>
-            <span class="dash-live"><span class="dash-dot"></span>live · 4m 12s</span>
-          </div>
-        </div>
+  <!-- the load-bearing "keep the disagreement in frame / no neutral level" paragraph -->
+  <section class="beat" data-scene="no-mush">
+    <div class="measure at-left step-in">
+      <p>Holding them together isn't blending them into a single blur. These perspectives genuinely disagree about what learning even is. Whichever you choose to focus on, you choose it. Holding them together means keeping the disagreement in frame, the way a good map keeps streets and highways on one screen without pretending either is a summary of the other.</p>
+    </div>
+  </section>
 
-        <div class="dash-body">
-          <div class="dash-col">
-            <div class="dash-kpis">
-              <div class="kpi"><div class="label">Mastery est.</div><div class="value">0.41</div><div class="sub">▼ below target</div></div>
-              <div class="kpi"><div class="label">Days on item</div><div class="value">19</div></div>
-              <div class="kpi"><div class="label">Hints</div><div class="value">37</div></div>
-              <div class="kpi"><div class="label">Attempts</div><div class="value">52</div></div>
-              <div class="kpi"><div class="label">Engagement</div><div class="value">LOW</div></div>
-              <div class="kpi flag"><div class="label">Off-task events</div><div class="value">14</div><div class="sub">flagged</div></div>
-            </div>
-
-            <div>
-              <div class="bar-label">Mastery toward target</div>
-              <div class="bar"><div class="bar-fill"></div><div class="bar-target"></div></div>
-              <div class="bar-note"><span>0.41 current</span><span>+0.39 to target (0.80)</span></div>
-            </div>
-
-            <div class="spark">
-              <div class="bar-label">Session accuracy, last 12</div>
-              <svg viewBox="0 0 220 42" fill="none" stroke="var(--cold-mid)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="2,30 20,26 38,33 56,24 74,31 92,28 110,34 128,22 146,30 164,33 182,27 200,31 218,29"/>
-              </svg>
-            </div>
-          </div>
-
-          <div class="dash-col">
-            <div class="panel">
-              <h4>Learning objective</h4>
-              <p class="quote">"Identify equivalent fractions with ≥80% accuracy across 5 novel problems."</p>
-            </div>
-            <div class="panel">
-              <h4>Queued intervention</h4>
-              <p class="code">HINT_8 → "Multiply the top and bottom by the same number."<br><span class="comment">// triggered: mastery &lt; 0.40, time_on_task &gt; 4:00</span></p>
-            </div>
-            <div class="panel">
-              <h4>Recommended action</h4>
-              <ul>
-                <li>re-serve prerequisite 4.2</li>
-                <li>increase hint frequency</li>
-                <li>notify instructor dashboard</li>
-              </ul>
-            </div>
-            <div class="panel">
-              <h4>Next problem · ZPD-matched</h4>
-              <p class="prob">3/4 = ?/8</p>
-              <p class="comment">est. p(success) 0.38</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="actions"><button data-next>continue</button></div>
+  <!-- ════════ THE BREAK — product sort: discover the tilt ════════ -->
+  <section class="beat" data-scene="product-sort">
+    <div class="measure at-center">
+      <h2>Where is the field spending its attention?</h2>
+      <p class="dim">Click each one, then click the lens you think it leans on.</p>
+    </div>
+    <div class="sort" id="sort">
+      <div class="tray" id="tray"></div>
+      <div class="bins">
+        <div class="bin" data-bin="behaviorist"><h5>Behaviorist</h5><span class="count" data-count="behaviorist">0</span></div>
+        <div class="bin" data-bin="cognitive"><h5>Cognitive</h5><span class="count" data-count="cognitive">0</span></div>
+        <div class="bin" data-bin="situated"><h5>Situated</h5><span class="count" data-count="situated">0</span></div>
+        <div class="bin" data-bin="sociocultural"><h5>Sociocultural</h5><span class="count" data-count="sociocultural">0</span></div>
       </div>
-      <div class="folio"></div>
-    </section>
+    </div>
+  </section>
 
-    <section class="page" data-screen="m4a-support" data-folio="4">
-      <div class="page-inner">
-        <p>Maya uses a tutoring app at school. It watches how she does and changes the lessons to fit her.</p>
-        <p class="question">What support would you give her?</p>
-        <ul class="support-list">
-          <li><label><input type="checkbox" data-support="teacher-review">Have her teacher look over her progress each week</label></li>
-          <li><label><input type="checkbox" data-support="parent-report">Send her parents a weekly progress report</label></li>
-          <li><label><input type="checkbox" data-support="forum">Add a discussion forum to the app</label></li>
-          <li><label><input type="checkbox" data-support="human-tutor">Give her fifteen minutes with a human tutor each week</label></li>
-        </ul>
-        <div class="actions"><button data-next>continue</button></div>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m4b-questions" data-folio="5">
-      <div class="page-inner">
-        <p>Before Maya's app existed, someone designed it. They started from a list of questions.</p>
-        <ul class="checklist">
-          <li><span class="box checked"></span><span>What should Maya master next?</span></li>
-          <li><span class="box checked"></span><span>How do we measure whether she can do it?</span></li>
-          <li><span class="box checked"></span><span>What is the right next problem for her level?</span></li>
-          <li><span class="box checked"></span><span>How do we know when she is ready to move on?</span></li>
-          <li><span class="box checked"></span><span>What counts as being good at fractions?</span></li>
-        </ul>
-        <p>Every kind of help you just gave answers one of these.</p>
-        <p>Someone else could have started from a different list.</p>
-        <ul class="checklist">
-          <li class="empty"><span class="box"></span><span>What is Maya working on, and who with?</span></li>
-          <li class="empty"><span class="box"></span><span>Who does she get to ask when she is stuck?</span></li>
-          <li class="empty"><span class="box"></span><span>What makes a room feel safe enough to be stuck in?</span></li>
-          <li class="empty"><span class="box"></span><span>Whose questions get asked? Whose do not?</span></li>
-          <li class="empty"><span class="box"></span><span>What might she care about that no one put on the worksheet?</span></li>
-        </ul>
-        <p>This second list was never filled in.</p>
-        <div class="actions"><button data-next>continue</button></div>
-        <p class="margin-glint">Bloom, 1984 — one child with one tutor outlearned the classroom by two standard deviations. The field has chased that number ever since.</p>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m4c-friends" data-folio="6">
-      <div class="page-inner">
-        <p>Maya uses the app at school. After school, she has a tutor too.</p>
-        <p>Most of her day is now one screen, or one grown-up, and one her.</p>
-        <p>She sits next to four friends in class. It's unfortunate, because lately she hasn't really talked to any of them.</p>
-        <p class="question">What does Maya need right now?</p>
-        <textarea data-capture="answer3" rows="2"></textarea>
-        <div class="actions"><button data-next>continue</button></div>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m4d-tube" data-folio="7">
-      <div class="page-inner">
-        <p>Everyone gets their own path now.</p>
-        <p>They all end in the same place.</p>
-        <div class="paths-frame">
-          <svg class="paths-art" viewBox="0 0 400 290" aria-hidden="true">
-            <g class="paths" fill="none" stroke="var(--bark)" stroke-width="1.2" stroke-linecap="round">
-              <path d="M28 14 C 112 92, 188 152, 200 234"/>
-              <path d="M86 14 C 142 92, 192 152, 200 234"/>
-              <path d="M143 14 C 176 92, 198 152, 200 234"/>
-              <path d="M200 14 L200 234"/>
-              <path d="M257 14 C 224 92, 202 152, 200 234"/>
-              <path d="M314 14 C 258 92, 208 152, 200 234"/>
-              <path d="M372 14 C 288 92, 212 152, 200 234"/>
-            </g>
-            <path class="paths-trunk" d="M192 234 L189 284 L211 284 L208 234 Z" fill="var(--trunk-dry)"/>
-          </svg>
-        </div>
-        <div class="actions"><button data-next>continue</button></div>
-        <p class="margin-glint">"The pathway may be personalized, but not the destination." — Holmes et al., 2022.</p>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m5-improves" data-folio="8">
-      <div class="page-inner">
-        <p>A few weeks later, Maya finished the page. Her scores went up. She moved on to the next one.</p>
-        <div class="trunk-frame">
-          <svg class="trunk-art" viewBox="0 0 360 460" aria-hidden="true">
-            <path class="dead-trunk" d="M170 414 C 167 332, 172 252, 175 152 C 176 134, 184 134, 185 152 C 188 252, 193 332, 190 414 Z"
-                  fill="var(--trunk-dry)" stroke="var(--trunk-dry-edge)" stroke-width="1.2"/>
-            <g stroke="var(--trunk-dry)" stroke-width="6" stroke-linecap="round" fill="none">
-              <path d="M180 198 C 152 184, 132 178, 116 184"/>
-              <path d="M181 168 C 210 156, 232 156, 248 166"/>
-            </g>
-            <g stroke="var(--trunk-dry-edge)" stroke-width="0.7" opacity="0.5" fill="none">
-              <path d="M178 202 C 176 272, 175 332, 177 402"/>
-              <path d="M184 222 C 186 292, 187 352, 185 406"/>
-              <path d="M180 252 l -4 18 l 5 14"/>
-            </g>
-          </svg>
-        </div>
-        <div class="actions"><button data-next>continue</button></div>
-        <p class="margin-glint">Biesta — if education is only preparation, are we teaching for a world that will still exist?</p>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m6-near-question" data-folio="9">
-      <div class="page-inner">
-        <p class="question">What does Maya need right now?</p>
-        <textarea data-capture="answer4" rows="2"></textarea>
-        <div class="actions"><button data-next>continue</button></div>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m7-your-words" data-folio="10">
-      <div class="page-inner">
-        <div class="recall-block">
-          <p class="recall-label">When you met her, you wrote:</p>
-          <p class="recall-answer" data-recall="answer2"></p>
-          <p class="recall-label">After you saw who was around her:</p>
-          <p class="recall-answer" data-recall="answer3"></p>
-          <p class="recall-label">Just now:</p>
-          <p class="recall-answer" data-recall="answer4"></p>
-        </div>
-        <p class="recall-close">Your words.</p>
-        <div class="actions"><button data-next>continue</button></div>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m8-tree" data-folio="11">
-      <div class="page-inner">
-        <div id="m8-stage">
-          <div class="tree-scene">
-            <svg class="rings-layer" viewBox="0 0 440 520" aria-hidden="true">
-              <g fill="none" stroke="var(--pencil)" stroke-width="1.3">
-                <circle cx="220" cy="235" r="150"/>
-                <circle cx="220" cy="235" r="100"/>
-                <circle cx="220" cy="235" r="54"/>
-              </g>
-              <circle cx="220" cy="235" r="6" fill="var(--ink)"/>
-            </svg>
-            <svg class="tree-layer" viewBox="0 0 440 520" aria-hidden="true">
-              <g class="sun-grp" stroke="var(--sun)" stroke-width="1.2" fill="none">
-                <circle cx="372" cy="74" r="16"/>
-                <g stroke-linecap="round">
-                  <line x1="372" y1="44" x2="372" y2="52"/><line x1="372" y1="96" x2="372" y2="104"/>
-                  <line x1="342" y1="74" x2="350" y2="74"/><line x1="394" y1="74" x2="402" y2="74"/>
-                  <line x1="351" y1="53" x2="357" y2="59"/><line x1="387" y1="89" x2="393" y2="95"/>
-                  <line x1="351" y1="95" x2="357" y2="89"/><line x1="387" y1="59" x2="393" y2="53"/>
-                </g>
-              </g>
-              <g class="soil-grp">
-                <ellipse class="soil" cx="220" cy="398" rx="172" ry="30" fill="var(--soil)"/>
-                <g class="soil-tex" stroke="var(--soil-light)" stroke-width="1" opacity="0.6">
-                  <line x1="118" y1="396" x2="150" y2="396"/>
-                  <line x1="282" y1="404" x2="318" y2="404"/>
-                  <line x1="190" y1="410" x2="222" y2="410"/>
-                </g>
-              </g>
-              <g class="roots-grp" fill="none" stroke="var(--trunk-live)" stroke-width="2" stroke-linecap="round">
-                <path d="M210 396 C 188 412, 158 420, 132 440"/>
-                <path d="M218 398 C 214 418, 210 432, 206 452"/>
-                <path d="M228 396 C 246 414, 278 422, 306 442"/>
-                <path d="M214 398 C 200 416, 176 424, 150 436"/>
-                <path d="M226 398 C 240 414, 262 424, 286 432"/>
-              </g>
-              <g class="trunk-grp">
-                <path d="M205 398 C 202 330, 206 280, 210 236 C 211 230, 229 230, 230 236 C 234 280, 238 330, 235 398 Z"
-                      fill="var(--trunk-live)" stroke="#5b4f42" stroke-width="1"/>
-              </g>
-              <g class="canopy-grp">
-                <path class="canopy" d="M220 70 C 150 64, 104 104, 120 150 C 78 168, 92 226, 150 224 C 162 256, 200 258, 220 236 C 240 258, 278 256, 290 224 C 348 226, 362 168, 320 150 C 336 104, 290 64, 220 70 Z"
-                      fill="var(--leaf)" stroke="var(--leaf-deep)" stroke-width="1.4"/>
-                <g class="leaves" fill="var(--leaf-deep)" opacity="0.5">
-                  <ellipse cx="150" cy="150" rx="14" ry="7" transform="rotate(-22 150 150)"/>
-                  <ellipse cx="300" cy="140" rx="14" ry="7" transform="rotate(20 300 140)"/>
-                  <ellipse cx="220" cy="118" rx="14" ry="7"/>
-                  <ellipse cx="185" cy="200" rx="13" ry="6" transform="rotate(-12 185 200)"/>
-                  <ellipse cx="262" cy="196" rx="13" ry="6" transform="rotate(14 262 196)"/>
-                </g>
-                <g class="fruit-grp" fill="var(--fruit)">
-                  <circle cx="168" cy="186" r="7"/>
-                  <circle cx="276" cy="176" r="7"/>
-                  <circle cx="222" cy="156" r="7"/>
-                </g>
-              </g>
-              <circle class="fruit-fall" cx="250" cy="206" r="7" fill="var(--fruit)"/>
-            </svg>
-          </div>
-          <p class="question tree-caption">soil, air, light.</p>
-          <p class="tree-sub">the things a tree can't grow without.</p>
-          <p class="tree-sub">we never named them.<br>you might have, by now.</p>
-        </div>
-        <div class="actions"><button data-next>continue</button></div>
-      </div>
-      <div class="folio"></div>
-    </section>
-
-    <section class="page" data-screen="m9-board" data-folio="12">
-      <div class="page-inner">
-        <div class="board">
-          <div class="board-tree">
-            <svg viewBox="0 0 200 250" aria-hidden="true">
-              <g stroke="var(--sun)" stroke-width="0.9" fill="none">
-                <circle cx="168" cy="36" r="9"/>
-                <g stroke-linecap="round">
-                  <line x1="168" y1="20" x2="168" y2="25"/><line x1="168" y1="47" x2="168" y2="52"/>
-                  <line x1="152" y1="36" x2="157" y2="36"/><line x1="179" y1="36" x2="184" y2="36"/>
-                </g>
-              </g>
-              <ellipse cx="100" cy="196" rx="84" ry="15" fill="var(--soil)"/>
-              <g fill="none" stroke="var(--trunk-live)" stroke-width="1.6" stroke-linecap="round">
-                <path d="M94 195 C 80 206, 60 212, 44 224"/>
-                <path d="M106 195 C 120 208, 142 214, 158 224"/>
-                <path d="M100 196 C 99 210, 98 218, 97 230"/>
-              </g>
-              <path d="M92 196 C 90 150, 93 120, 96 100 C 97 96, 105 96, 106 100 C 109 120, 112 150, 110 196 Z"
-                    fill="var(--trunk-live)" stroke="#5b4f42" stroke-width="0.8"/>
-              <path d="M100 26 C 58 22, 32 48, 44 78 C 18 90, 28 128, 64 126 C 72 148, 96 150, 100 134 C 104 150, 128 148, 136 126 C 172 128, 182 90, 156 78 C 168 48, 142 22, 100 26 Z"
-                    fill="var(--leaf)" stroke="var(--leaf-deep)" stroke-width="1.1"/>
-              <g fill="var(--fruit)">
-                <circle cx="70" cy="96" r="4.5"/>
-                <circle cx="132" cy="88" r="4.5"/>
-                <circle cx="100" cy="74" r="4.5"/>
-              </g>
-            </svg>
-          </div>
-          <div class="board-doodle" id="board-doodle"></div>
-        </div>
-        <p class="question">What is education for?</p>
-        <textarea data-capture="answer5" rows="2"></textarea>
-        <div class="actions"><button data-end>done</button></div>
-        <div class="credit-card">
-          Hi, I'm Vishal. I made this with my dear friend Yoyo as a project for Educ 432 (Explorable Explanations) and Stat 292 (Statistical Models of Language and Text) at Stanford.<br><br>
-          If you said yes to sharing your words and what you do, I'll use them to study how people's view of education shifts as the question moves from far away to up close, by looking at how the answers move in neural embedding space.<br><br>
-          Your responses are anonymous. You can change your mind: opt out.
+  <!-- ════════ THE HYPOTHESIS PROMPT ════════ -->
+  <section class="beat" data-scene="hypothesis">
+    <div class="measure at-left">
+      <h2>What comes to mind now when you think about education?</h2>
+      <div class="ask">
+        <textarea data-capture="hypothesis" rows="3" placeholder="in your own words…"></textarea>
+        <div class="save-row">
+          <button type="button" class="save-btn" data-save="hypothesis" disabled>save</button>
+          <span class="save-note" data-note="hypothesis">saved.</span>
         </div>
       </div>
-      <div class="folio"></div>
-    </section>
+    </div>
+  </section>
 
-    <section class="page" data-screen="end">
-      <div class="page-inner">
-        <p class="question">Thank you.</p>
-        <p>That's the end of the gray-box walk-through.</p>
-        <p class="hint" id="drift-summary"></p>
-        <div class="actions">
-          <button data-restart>read it again</button>
-          <button class="quiet" data-log>log session to console</button>
-        </div>
-      </div>
-      <div class="folio"></div>
-    </section>
+  <!-- ════════ CLOSING BUN — the tree ════════ -->
+  <section class="beat" data-scene="tree-close">
+    <div class="measure at-center tree-close">
+      <div style="width:min(100%,680px);margin:0 auto 1em;"><figure class="art-fig"><img class="art wide" src="images/tree-close.png" alt="Children sitting at the roots of a grown apple tree, sheltered by it."></figure></div>
+      <p class="closing-line">And so the small seed of curiosity grew into something magnificent, when no single lens was watching.</p>
+      <p class="cite" style="margin-top:2em;">With thanks to Amelia Wattenberger, whose "Fish eyes" gave us the lens.</p>
+    </div>
+  </section>
 
-    <div id="doodle-margin" aria-hidden="true"></div>
-
-  </div>
 </div>
 
 <script>
-  const session = {
-    consent: null,
-    profession: '',
-    answer1: '',
-    answer2: '',
-    answer3: '',
-    answer4: '',
-    answer5: '',
-    support: [],
-    doodle: null,
-    startedAt: new Date().toISOString()
-  };
-  window.mayaSession = session;
+(function(){
+  const session = { view0:'', help:{behaviorist:[],cognitive:[],situated:[],sociocultural:[]}, hypothesis:'', sort:{} };
+  window.fisheyeSession = session;
 
-  const body = document.body;
-  const screens = Array.from(document.querySelectorAll('.page'));
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const cornerDoodle = document.getElementById('doodle-margin');
-  const boardDoodle = document.getElementById('board-doodle');
-  const hideCornerOn = ['consent', 'm1-far-question', 'm2-meet-maya', 'm3-system-view', 'm9-board', 'end'];
-  let position = 0;
-  let turning = false;
-  let hasDrawn = false;
-  let canvasReady = false;
+  // ── anonymous clickstream tracking ──────────────────────────────────────
+  const sessionId = (window.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : 'sid-' + Date.now() + '-' + Math.floor(Math.random()*1e9);
+  const startedIso = new Date().toISOString();
+  const startPerf = performance.now();
+  let eventSeq = 0;
+  let previousEventPerf = startPerf;
+  const checkboxState = {};   // optionId -> {camp, label, checked, toggleCount, firstCheckedAtMs}
+  const sortOrder = [];       // chronological record of every chip placement
 
-  const horseMarkup = `<svg viewBox="0 0 130 100" fill="none" stroke="#46423c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M30 80 L30 52 C30 42 40 38 52 38 L86 38 C92 38 96 34 98 28 L104 16 L112 20 L106 30 C104 40 98 48 86 50 L60 50"/>
-    <path d="M30 52 C30 64 36 72 46 76"/>
-    <path d="M40 50 L38 84"/><path d="M56 50 L54 84"/>
-    <path d="M74 50 L78 84"/><path d="M86 50 L92 84"/>
-    <path d="M30 54 C20 58 18 70 22 82"/>
-    <path d="M100 18 L98 10 L104 14"/>
-    <circle cx="104" cy="24" r="1.6" fill="#46423c"/>
-  </svg>`;
+  function millisSinceStart(){ return Math.round(performance.now() - startPerf); }
 
-  function doodleMarkup() {
-    if (session.doodle === 'horse') return horseMarkup;
-    if (session.doodle) return `<img src="${session.doodle}" alt="">`;
-    return '';
+  function track(type, detail){
+    const nowPerf = performance.now();
+    const event = Object.assign({
+      session_id: sessionId,
+      seq: eventSeq++,
+      type: type,
+      time_since_start_ms: Math.round(nowPerf - startPerf),
+      time_since_previous_ms: Math.round(nowPerf - previousEventPerf),
+      client_iso: new Date().toISOString()
+    }, detail || {});
+    previousEventPerf = nowPerf;
+    try {
+      fetch('/log', { method:'POST', keepalive:true,
+        headers:{'Content-Type':'application/json'}, body: JSON.stringify(event) });
+    } catch(e){ /* server not running: tracking is best-effort, page still works */ }
   }
 
-  function setupCanvas() {
-    if (canvasReady) return;
-    const canvas = document.getElementById('doodle-canvas');
-    if (!canvas || canvas.clientWidth === 0) return;
-    const dpr = window.devicePixelRatio || 1;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--graphite').trim();
-
-    let drawing = false;
-    let last = null;
-    const at = event => {
-      const rect = canvas.getBoundingClientRect();
-      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  function buildSnapshot(){
+    return {
+      session_id: sessionId,
+      started_iso: startedIso,
+      last_update_iso: new Date().toISOString(),
+      duration_ms: millisSinceStart(),
+      first_answer: session.view0,
+      final_answer: session.hypothesis,
+      checkboxes: checkboxState,
+      help_selected: session.help,
+      card_sort_placements: session.sort,
+      card_sort_order: sortOrder,
+      total_events: eventSeq
     };
-    canvas.addEventListener('pointerdown', event => {
-      drawing = true;
-      last = at(event);
-      canvas.setPointerCapture(event.pointerId);
-    });
-    canvas.addEventListener('pointermove', event => {
-      if (!drawing) return;
-      const point = at(event);
-      ctx.beginPath();
-      ctx.moveTo(last.x, last.y);
-      ctx.lineTo(point.x, point.y);
-      ctx.stroke();
-      last = point;
-      hasDrawn = true;
-    });
-    const stop = () => { drawing = false; };
-    canvas.addEventListener('pointerup', stop);
-    canvas.addEventListener('pointerleave', stop);
-    canvasReady = true;
   }
 
-  function clearCanvas() {
-    const canvas = document.getElementById('doodle-canvas');
-    if (!canvas) return;
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-    hasDrawn = false;
-  }
-
-  function skipDoodle() {
-    session.doodle = 'horse';
-    const area = document.getElementById('doodle-area');
-    if (area) {
-      area.classList.add('settled');
-      area.innerHTML = `<div class="doodle-settled"><span class="scrap" style="width:64px">${horseMarkup}</span><span>a horse will keep her company.</span></div>`;
-    }
-  }
-
-  function finalizeDoodle() {
-    if (session.doodle) return;
-    const canvas = document.getElementById('doodle-canvas');
-    session.doodle = (hasDrawn && canvas) ? canvas.toDataURL('image/png') : 'horse';
-  }
-
-  function captureCurrentScreen() {
-    const screen = screens[position];
-    const professionField = screen.querySelector('#profession');
-    if (professionField) session.profession = professionField.value.trim();
-    screen.querySelectorAll('[data-capture]').forEach(field => {
-      session[field.dataset.capture] = field.value.trim();
-    });
-  }
-
-  function recordSupport() {
-    session.support = Array.from(
-      document.querySelectorAll('[data-support]:checked')
-    ).map(box => box.dataset.support);
-  }
-
-  function fillRecall() {
-    document.querySelectorAll('[data-recall]').forEach(slot => {
-      const value = session[slot.dataset.recall];
-      if (value) {
-        slot.textContent = value;
-        slot.classList.remove('empty');
-      } else {
-        slot.textContent = '(left blank)';
-        slot.classList.add('empty');
-      }
-    });
-  }
-
-  function fillDriftSummary() {
-    const proximal = [session.answer2, session.answer3, session.answer4];
-    const filled = proximal.filter(Boolean).length;
-    document.getElementById('drift-summary').textContent = filled === 3
-      ? 'three answers to "what does maya need" captured — read them back and ask: did they move?'
-      : 'tip: fill all three "what does maya need" answers to feel the drift test.';
-  }
-
-  function updateCorner(screen) {
-    const show = session.doodle && !hideCornerOn.includes(screen.dataset.screen);
-    cornerDoodle.style.display = show ? 'block' : 'none';
-    if (show) cornerDoodle.innerHTML = doodleMarkup();
-  }
-
-  function prepare(screen) {
-    const name = screen.dataset.screen;
-    if (name === 'm7-your-words') fillRecall();
-    if (name === 'end') fillDriftSummary();
-    if (name === 'm9-board') boardDoodle.innerHTML = doodleMarkup();
-    body.classList.toggle('cold-mode', screen.classList.contains('cold'));
-    updateCorner(screen);
-    const inner = screen.querySelector('.page-inner');
-    if (inner) inner.scrollTop = 0;
-  }
-
-  function playArt(svg) {
-    if (!svg) return;
-    svg.classList.remove('draw', 'snap');
-    void svg.offsetWidth;
-    svg.classList.add(reduceMotion ? 'snap' : 'draw');
-  }
-
-  function revealTree() {
-    const stage = document.getElementById('m8-stage');
-    if (!stage) return;
-    stage.classList.remove('revealed', 'snap');
-    void stage.offsetWidth;
-    if (reduceMotion) stage.classList.add('snap');
-    else setTimeout(() => stage.classList.add('revealed'), 1100);
-  }
-
-  function settle(screen) {
-    const name = screen.dataset.screen;
-    if (name === 'm2-meet-maya') setupCanvas();
-    if (name === 'm1-far-question') playArt(document.getElementById('rings-m1'));
-    if (name === 'm4d-tube') playArt(screen.querySelector('.paths-art'));
-    if (name === 'm8-tree') revealTree();
-    const field = screen.querySelector('textarea, input[type="text"]');
-    if (field) field.focus();
-  }
-
-  function hardCut(nextIndex) {
-    screens[position].classList.remove('active');
-    position = nextIndex;
-    const next = screens[position];
-    prepare(next);
-    next.classList.add('active');
-    settle(next);
-  }
-
-  function turnTo(nextIndex) {
-    turning = true;
-    const current = screens[position];
-    const next = screens[nextIndex];
-    prepare(next);
-    next.classList.add('below');
-    current.classList.add('turning');
-    current.addEventListener('animationend', () => {
-      current.classList.remove('active', 'turning');
-      next.classList.remove('below');
-      next.classList.add('active');
-      position = nextIndex;
-      turning = false;
-      settle(next);
-    }, { once: true });
-  }
-
-  function go() {
-    if (turning) return;
-    if (screens[position].dataset.screen === 'm2-meet-maya') finalizeDoodle();
-    captureCurrentScreen();
-    recordSupport();
-    if (position >= screens.length - 1) return;
-    const nextIndex = position + 1;
-    const coldInvolved = screens[position].classList.contains('cold')
-      || screens[nextIndex].classList.contains('cold');
-    if (reduceMotion || coldInvolved) hardCut(nextIndex);
-    else turnTo(nextIndex);
-  }
-
-  document.getElementById('desk').addEventListener('click', event => {
-    const target = event.target.closest('button');
-    if (!target) return;
-
-    if (target.hasAttribute('data-clear-doodle')) { clearCanvas(); return; }
-    if (target.hasAttribute('data-skip-doodle')) { skipDoodle(); return; }
-    if (target.hasAttribute('data-consent')) {
-      session.consent = target.dataset.consent === 'yes';
-    }
-    if (target.hasAttribute('data-restart')) { location.reload(); return; }
-    if (target.hasAttribute('data-log')) {
-      console.log('Maya session:', JSON.parse(JSON.stringify(session)));
-      target.textContent = 'logged — open the console';
+  function sendSnapshot(useBeacon){
+    const snapshot = buildSnapshot();
+    const body = JSON.stringify(snapshot);
+    if(useBeacon && navigator.sendBeacon){
+      navigator.sendBeacon('/snapshot', new Blob([body], {type:'application/json'}));
       return;
     }
-    if (target.hasAttribute('data-next') || target.hasAttribute('data-end')) go();
+    try {
+      fetch('/snapshot', { method:'POST', keepalive:true,
+        headers:{'Content-Type':'application/json'}, body: body });
+    } catch(e){ /* best-effort */ }
+  }
+
+  track('session_start', { user_agent: navigator.userAgent, viewport_w: window.innerWidth, viewport_h: window.innerHeight });
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendSnapshot(true); });
+  window.addEventListener('pagehide', ()=>{ track('session_end', {}); sendSnapshot(true); });
+
+  // ── checklists: capture + the gentle "you chose them all" note ──
+  document.querySelectorAll('.checklist').forEach(list=>{
+    const camp = list.dataset.camp;
+    const note = document.querySelector(`[data-note="${camp}"]`);
+    const boxes = [...list.querySelectorAll('input')];
+    boxes.forEach((box, index)=>{
+      const optionId = camp + '-' + (index+1);
+      const label = box.closest('label').innerText.trim();
+      checkboxState[optionId] = { camp, label, checked:false, toggle_count:0, first_checked_at_ms:null };
+      box.addEventListener('change', ()=>{
+        const record = checkboxState[optionId];
+        record.checked = box.checked;
+        record.toggle_count += 1;
+        if(box.checked && record.first_checked_at_ms===null) record.first_checked_at_ms = millisSinceStart();
+        track('checkbox', { option_id: optionId, camp, label, checked: box.checked });
+      });
+    });
+    list.addEventListener('change',()=>{
+      const chosen = boxes.filter(b=>b.checked);
+      session.help[camp] = chosen.map(b=>b.closest('label').innerText.trim());
+      if(note){
+        if(chosen.length===boxes.length) note.textContent = 'we feel the same way.';
+        else if(chosen.length>0) note.textContent = '';
+        else note.textContent = '';
+      }
+    });
   });
 
-  document.getElementById('desk').addEventListener('keydown', event => {
-    if (event.key !== 'Enter' || event.shiftKey) return;
-    if (event.target.tagName !== 'TEXTAREA') return;
-    event.preventDefault();
-    go();
+  // ── the fish-eye mechanic (tunnel-first, toggle, art in slots) ──
+  const L=[
+    {p:'BEHAVIORIST',   q:'What can she do?',          d:'The skill: she lands ¾, reinforced until it holds.', img:'images/product-1.jpg'},
+    {p:'COGNITIVE',     q:'What does she understand?', d:'The model knitting together underneath the answer.', img:'images/product-2.jpg'},
+    {p:'SITUATED',      q:'How does she participate?', d:'The partner, the tiles, the practice she is in.',    img:'images/product-3.jpg'},
+    {p:'SOCIOCULTURAL', q:'Whose knowledge counts?',   d:'The world the moment sits in: home, school, music.', img:'images/product-4.jpg'}
+  ];
+  const corners=['tl','tr','br','bl'];
+  const stage=document.getElementById('stage');
+  const ctr=document.getElementById('ctr');
+  const read=document.getElementById('read');
+  const acquire=document.getElementById('acquire');
+  const acquireLabel=document.getElementById('acquireLabel');
+  let fishOn=false, focus=0;   // start tunneled, behaviorist centered
+  const cueSVG='<span class="cue"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M2 2 L5 5"/><path d="M5 2 L2 2 L2 5"/></svg></span>';
+
+  L.forEach((d,i)=>{
+    const n=document.createElement('div');
+    n.className='lcard lens '+corners[i]; n.dataset.i=i; n.tabIndex=-1;
+    n.innerHTML=cueSVG+`<div class="pn">${d.p}</div><div class="q">${d.q}</div>`+
+                `<div class="slot"><img src="${d.img}" alt=""></div>`;
+    n.addEventListener('click',()=>{ focusTo(i); });
+    n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); focusTo(i); }});
+    stage.appendChild(n);
   });
 
-  screens[0].classList.add('active');
-  settle(screens[0]);
+  function paintCenter(){
+    const d=L[focus];
+    ctr.innerHTML=`<div class="pn">${d.p}</div><div class="q">${d.q}</div>`+
+                  `<div class="slot"><img src="${d.img}" alt=""></div>`+
+                  `<div class="d">${d.d}</div>`;
+  }
+  function paintLenses(){
+    stage.classList.toggle('tunnel',!fishOn);
+    stage.classList.toggle('fish',fishOn);
+    stage.querySelectorAll('.lens').forEach(node=>{
+      const i=+node.dataset.i; node.classList.remove('is-focus','near','far');
+      if(i===focus){ node.classList.add('is-focus'); }
+      else{ const dist=Math.min((i-focus+4)%4,(focus-i+4)%4); node.classList.add(dist===1?'near':'far'); }
+      node.tabIndex = (fishOn && i!==focus) ? 0 : -1;
+    });
+    read.innerHTML='';
+    acquire.classList.toggle('on',fishOn);
+    acquireLabel.textContent = fishOn ? 'take off the fish-eye lens' : 'put on the fish-eye lens';
+  }
+  function render(){ paintCenter(); paintLenses(); }
+  function focusTo(i){
+    if(!fishOn || i===focus) return;
+    focus=i;
+    track('fisheye_focus', { camp: L[i].p.toLowerCase(), label: L[i].q });
+    paintLenses();                 // periphery reshuffles the instant you click
+    ctr.style.opacity='0';         // center crossfades to the newly-focused view
+    setTimeout(()=>{ paintCenter(); ctr.style.opacity='1'; }, 230);
+  }
+  acquire.addEventListener('click',()=>{
+    fishOn=!fishOn; if(!fishOn) focus=0; render();
+    track('fisheye_toggle', { lens_on: fishOn });
+  });
+  render();
+
+  // ── product sort (rough): tap a chip, tap a lens-bin to place it ──
+  const products=['Khanmigo / AI tutor','Anki flashcards','Duolingo streak','a Discord study group','a one-on-one tutor','a maker / robotics club','a lecture hall','Alpha School'];
+  const tray=document.getElementById('tray');
+  let selectedChip=null;
+  products.forEach(name=>{
+    const c=document.createElement('span'); c.className='chip'; c.textContent=name; c.dataset.name=name;
+    c.addEventListener('click',()=>{
+      if(selectedChip) selectedChip.style.borderColor='';
+      selectedChip=c; c.style.borderColor='var(--sage)';
+      track('sort_select', { product: c.dataset.name });
+    });
+    tray.appendChild(c);
+  });
+  const counts={behaviorist:0,cognitive:0,situated:0,sociocultural:0};
+  document.querySelectorAll('.bin').forEach(bin=>{
+    bin.addEventListener('click',()=>{
+      if(!selectedChip) return;
+      const camp=bin.dataset.bin;
+      const product=selectedChip.dataset.name;
+      selectedChip.classList.add('placed'); selectedChip.style.borderColor='';
+      session.sort[product]=camp;
+      sortOrder.push({ product, camp, placed_at_ms: millisSinceStart() });
+      track('sort_place', { product, camp });
+      bin.appendChild(selectedChip);
+      counts[camp]=[...bin.querySelectorAll('.chip')].length;
+      Object.keys(counts).forEach(k=>{
+        const el=document.querySelector(`[data-count="${k}"]`);
+        if(el) el.textContent=[...document.querySelector(`[data-bin="${k}"]`).querySelectorAll('.chip')].length;
+      });
+      selectedChip=null;
+    });
+  });
+
+  // ── capture opening view + hypothesis ──
+  const v0=document.querySelector('[data-capture="view0"]');
+  const v0btn=document.querySelector('[data-save="view0"]');
+  const v0note=document.querySelector('[data-note="view0"]');
+  if(v0){
+    v0.addEventListener('focus',()=>track('text_focus',{field:'first_answer'}),{once:true});
+    v0.addEventListener('input',()=>{
+      session.view0=v0.value.trim();
+      if(v0btn){ v0btn.disabled = session.view0.length===0;
+        v0btn.classList.remove('saved'); v0btn.textContent='save'; }
+      if(v0note) v0note.classList.remove('show');
+    });
+  }
+  if(v0btn){
+    v0btn.addEventListener('click',()=>{
+      session.view0 = v0 ? v0.value.trim() : '';
+      v0btn.classList.add('saved'); v0btn.textContent='saved';
+      if(v0note) v0note.classList.add('show');
+      track('text_save',{ field:'first_answer', value:session.view0, length:session.view0.length });
+      sendSnapshot(false);
+    });
+  }
+  const hyp=document.querySelector('[data-capture="hypothesis"]');
+  const hypbtn=document.querySelector('[data-save="hypothesis"]');
+  const hypnote=document.querySelector('[data-note="hypothesis"]');
+  if(hyp){
+    hyp.addEventListener('focus',()=>track('text_focus',{field:'final_answer'}),{once:true});
+    hyp.addEventListener('input',()=>{
+      session.hypothesis=hyp.value.trim();
+      if(hypbtn){ hypbtn.disabled = session.hypothesis.length===0;
+        hypbtn.classList.remove('saved'); hypbtn.textContent='save'; }
+      if(hypnote) hypnote.classList.remove('show');
+    });
+  }
+  if(hypbtn){
+    hypbtn.addEventListener('click',()=>{
+      session.hypothesis = hyp ? hyp.value.trim() : '';
+      hypbtn.classList.add('saved'); hypbtn.textContent='saved';
+      if(hypnote) hypnote.classList.add('show');
+      track('text_save',{ field:'final_answer', value:session.hypothesis, length:session.hypothesis.length });
+      sendSnapshot(false);
+    });
+  }
+
+  // log on demand
+  window.logSession=()=>console.log(JSON.parse(JSON.stringify(buildSnapshot())));
+})();
 </script>
 </body>
 </html>

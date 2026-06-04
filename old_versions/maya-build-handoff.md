@@ -4,6 +4,26 @@ A precise plan for building the explorable. Hand this to the implementation chat
 
 ---
 
+## Current status (as built — updated 2026-06-01)
+
+The original build plan below is preserved as the rationale and milestone record. As of now, **the plan is largely realized** in `index.html`. Status by milestone:
+
+| Milestone | Status | Notes |
+|---|---|---|
+| **M0 — Spine gray-box** | ✅ Done | All screens wired; five captures + checkboxes + consent in one in-memory state object; "Your words" stack reveal works. |
+| **M1 — Doodle canvas** | ✅ Done | Freehand graphite canvas on M2; horse fallback on skip; persists untouched into the margin and onto the board; never analyzed. |
+| **M2 — Two palettes + cold M3** | ✅ Done | Palette **revised from the plan**: botanical-on-white, with the cold system as the *same hues drained* rather than a separate blue (see the script's palette revision). M3 is a full cold dashboard; "14 off-task events flagged" present and unexplained. |
+| **M3 — Concept art: rings, tree, tip** | ✅ Done | All real inline SVG: M1 rings (cold, animated draw-on), M4d converging paths, M5 dead trunk, and the M8 rings→tree reveal (rings tip into the ground plane, trunk rises, canopy blooms, one fruit falls). Only "soil, air, light" is spoken. |
+| **M4 — Board, margins, sound, polish** | ◐ Partial | Board ending built (tree art + doodle + final field + credit card); margin glints placed (Biesta, Bloom, Holmes). **Sound not yet built.** |
+| **Backend / data save** | ❌ Not built | Session is in-memory only (`window.mayaSession`) + a console-log button. No POST / Supabase / Sheet yet. See §3. |
+| **IRB determination** | ❌ Outstanding | Must be sorted before any public release that collects a real answer. See §6. |
+
+**Structural change from the plan:** the single Screen 4 became **four pages (4a support · 4b two-lists-of-questions · 4c friends + near-question · 4d converging paths)**. The full as-built text lives in the script's Screen 4 section.
+
+**Remaining work, in order:** (1) wire a real anonymous save so friend-tests record; (2) the IRB email; (3) sound; (4) any feel/pacing polish on the M8 reveal.
+
+---
+
 ## 0. Read first / how to use this
 
 - **Attach two files to the new chat:** `maya-explorable-script.md` (script + visual bible) and `tree-rings-anatomy.svg` (concept-art layout guide). `tree-rings-two-views.svg` is an earlier rough, optional.

@@ -7,6 +7,24 @@ Final due 6/10/2026
 
 ---
 
+## Current status (as built — updated 2026-06-01)
+
+This outline is realized in `lenses.html`. The design is preserved below as the rationale; this section records what was actually built and where the build went past or settled the outline.
+
+| Beat | Status | As-built notes |
+|---|---|---|
+| 0 — Cold open | ✅ Done | Fresh case chosen: **Alex**, six weeks into learning to code, stuck on a Karel-style loop exercise, in a course built around a community they haven't used. Question: *"What does Alex need right now?"* Captures Answer 1. |
+| 1 — Lens-switcher | ✅ Done | Cursor-as-lens with custom SVG cursors; interactive scene with clickable elements; per-lens sidebar (foregrounded / noise / recommends / cannot see); page tints to the active lens. **Built beyond the outline:** three switchable cases — Alex, Maya, Devi (adult learner at a music jam) — not one. Soft 2-lens nudge before continue. |
+| 2 — Catalogue + generate | ✅ Done | 2D map; axes *individual ↔ system/collective* (X) and *observable performance ↔ inferred meaning* (Y); 9 pinned patterns with profile cards; add-your-own modal (name, description, lens checkboxes, click-to-place). |
+| 3 — Positionality | ✅ Done | Same map; 3 sequential markers (*your design instinct · where you learned best · your current work or practice*); pinned patterns kept faintly visible (opacity ~0.18); free-text reflection captured. |
+| 4 — Design-bench | ✅ Done | 4 context options; 5 sliders (directionality, scaffolding, group structure, tool reliance, cultural specificity); live dot on the map; four live lens-readings; commit step (trade-off + predicted failure); closing reflection recalls the cold-open answer. |
+| Data persistence | ❌ Not built | In-memory only (`window.lensSession`) + console-log. No backend. |
+| IRB | ❌ Outstanding | Required before any public release that collects real answers. |
+
+**Capture, as built:** Answer 1 (Beat 0, *what does Alex need*), Answer 3 (Beat 3 reflection), `tradeoff` + `failure` (Beat 4 commit), Answer 5 (Beat 4 closing *what does Alex need now*), plus structured: lenses tried, user-added patterns, three positionality coordinates, design context, slider settings, and computed dot position. (This differs slightly from the original capture table further down, which listed a Beat-2 self-added-pattern name as Answer 2; the build instead captures the added pattern as structured data.)
+
+---
+
 ## Purpose, in one sentence
 
 Help learners see that the four perspectives in learning science (Behaviorist, Cognitive, Situated/Distributed, Socio-cultural) work as **different lenses on the same situation**, each foregrounding what the others treat as background — and use that awareness to design and evaluate learning experiences with deliberate balance for context.
@@ -70,9 +88,7 @@ Beats 2 and 3 share a canvas (the 2D map); only the overlay prompts differ. That
 
 **Purpose.** Ground the abstraction in one specific person before any vocabulary lands.
 
-**Scenario.** One short, simple, ambiguous moment with one learner. ~100 words, plain prose. Candidates:
-- A short Maya excerpt (reuses existing material, comes with baggage from prior iteration)
-- A fresh case: a junior dev stuck on a stack trace; a kid practicing violin alone; an adult learning Mandarin from an app. *(Leaning fresh — cleaner slate.)*
+**Scenario.** One short, simple, ambiguous moment with one learner. ~100 words, plain prose. *Resolved (as built):* a fresh case — **Alex**, six weeks into learning to code, stuck for an hour on a loop exercise (moving a small robot through a grid), in a course built around a community Alex hasn't used. Two more cases (Maya; Devi, an adult at a music jam) are selectable in Beat 1.
 
 **On screen.**
 - The scenario
@@ -405,11 +421,11 @@ Roughest-to-finest, matching the discipline of the earlier Maya handoff doc.
 
 ## Open decisions
 
-1. **Cold-open case** — Maya excerpt or fresh case? *(Leaning fresh.)*
-2. **Pooling added patterns across players** — yes (richer artifact, gold for Stat 292) or no (simpler IRB)?
-3. **Lens cursor visuals** — custom SVG icons or CSS-only? *(Leaning custom SVG.)*
-4. **Whether the probe-v1 LO animation appears as a Beat 0 prelude.** *(Deferred per current scope.)*
-5. **Catalogue placement during Beat 3** — keep faintly visible (continuity), or hide for focus (clean canvas)? Test both.
+1. **Cold-open case** — *Resolved (as built):* fresh case (Alex), with Maya and Devi also selectable in Beat 1.
+2. **Pooling added patterns across players** — *Still open.* Not built yet; depends on the IRB conversation.
+3. **Lens cursor visuals** — *Resolved (as built):* custom SVG cursors per lens.
+4. **Whether the probe-v1 LO animation appears as a Beat 0 prelude.** *Still deferred* per current scope.
+5. **Catalogue placement during Beat 3** — *Resolved (as built):* kept faintly visible (opacity ~0.18) for continuity.
 
 ---
 
