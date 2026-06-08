@@ -23,6 +23,8 @@
     --bloom:rgba(143,163,130,0.22);   /* soft halo behind focused things */
     --cold-bg:#dfe4e4;       /* the cold screen, drained */
     --cold-ink:#566;
+    --spring:cubic-bezier(.34,1.42,.5,1);   /* overshoot for lens motion */
+    --ease:cubic-bezier(.16,1,.3,1);        /* soft settle */
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
@@ -114,10 +116,22 @@
 
   /* ── the fish-eye mechanic: four around a center (tunnel-first, square ink) ── */
   .fisheye{ width:min(100%,620px); margin:1.4em auto; }
-  .stage{ position:relative; width:100%; aspect-ratio:1/1; }
+  .stage{ position:relative; width:100%; aspect-ratio:1/1; --fish:0; }
+
+  /* bloom halo — peripheral awareness brightening in as the aperture opens */
+  .halo{ position:absolute; inset:-6%; border-radius:50%; pointer-events:none; z-index:0;
+    background:radial-gradient(circle at 50% 50%, var(--bloom) 0%, transparent 62%);
+    opacity:calc(var(--fish) * .9); transform:scale(calc(.7 + var(--fish)*.3));
+    transition:opacity .7s var(--ease), transform .9s var(--ease); }
+  /* iris ring drawn at the aperture edge */
+  .iris-ring{ position:absolute; top:50%; left:50%; z-index:6; pointer-events:none; border-radius:50%;
+    width:calc(16% + var(--fish) * 134%); height:calc(16% + var(--fish) * 134%);
+    transform:translate(-50%,-50%); border:1px solid var(--sage); opacity:calc(var(--fish) * .35);
+    transition:width .8s var(--ease), height .8s var(--ease), opacity .8s var(--ease); }
 
   .lcard{ background:rgba(255,255,255,.55); border:1px solid var(--line); border-radius:2px;
-    padding:13px 14px; text-align:center; will-change:transform,opacity; transition:opacity .6s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1), border-color .3s; }
+    padding:13px 14px; text-align:center; will-change:transform,opacity,filter;
+    transition:opacity .7s var(--ease), transform .85s var(--spring), filter .6s ease, border-color .3s; }
   .lcard .pn{ font-family:system-ui,sans-serif; font-size:10.5px; letter-spacing:.08em; color:var(--bark); }
   .lcard .q{ font-style:italic; color:var(--bark); font-size:14px; margin:4px 0 9px; }
   .lcard .slot{ width:100%; aspect-ratio:4/3; border:1px dashed var(--line-soft); border-radius:1px; overflow:hidden;
@@ -125,43 +139,69 @@
   .lcard .slot img{ width:100%; height:100%; object-fit:cover; display:block; }
   .lcard .d{ font-size:12.5px; line-height:1.45; color:var(--ink); margin-top:9px; }
 
-  .ctr{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:46%; z-index:5; border:1.5px solid var(--sage); background:#fff;
-    transition:opacity .28s ease, transform .6s cubic-bezier(.22,1,.36,1); }
+  /* center — every transform comes from these props, so switch + settle compose cleanly */
+  .ctr{ position:absolute; top:50%; left:50%; width:46%; z-index:5;
+    border:1.5px solid var(--sage); background:#fff;
+    --tx:0px; --ty:0px; --sc:1; --clip:circle(140% at 50% 50%);
+    transform:translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(var(--sc));
+    clip-path:var(--clip);
+    transition:opacity .45s var(--ease), transform .6s var(--spring), clip-path .55s var(--ease); }
   .ctr .pn{ color:var(--sage); font-weight:700; }
 
-  .lens{ position:absolute; width:30%; z-index:4; }
+  /* periphery wrapper carries the iris clip-path */
+  .periphery{ position:absolute; inset:0; z-index:2;
+    clip-path:circle(calc(8% + var(--fish) * 67%) at 50% 50%);
+    transition:clip-path .8s var(--ease); }
+  .lens{ position:absolute; width:30%; z-index:3; }
   .lens .d{ display:none; }
-  .lens.tl{top:0;left:0;} .lens.tr{top:0;right:0;} .lens.bl{bottom:0;left:0;} .lens.br{bottom:0;right:0;}
+  /* three peripheral slots around the focused center: one top-center, two at the bottom */
+  .lens.pos-top{ top:0; left:50%; }
+  .lens.pos-bl{ bottom:0; left:0; }
+  .lens.pos-br{ bottom:0; right:0; }
+  .lens.hidden{ opacity:0 !important; pointer-events:none !important; }
 
-  /* tunnel (default): periphery collapsed toward center, ready to unfold */
-  .stage.tunnel .lens{ opacity:0; pointer-events:none; }
-  .stage.tunnel .lens.tl{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:bottom right; }
-  .stage.tunnel .lens.tr{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:bottom left; }
-  .stage.tunnel .lens.bl{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:top right; }
-  .stage.tunnel .lens.br{ transform:perspective(700px) rotateY(0deg) rotateX(0deg) scale(.42); transform-origin:top left; }
-  /* fish-eye on: periphery warps in, present-not-gone, clickable */
-  .stage.fish .lens{ cursor:pointer; opacity:.7; }
-  .stage.fish .lens.near{ opacity:.85; } .stage.fish .lens.far{ opacity:.6; }
-  .stage.fish .lens.is-focus{ opacity:.3; border-style:dashed; }
-  .stage.fish .lens.tl{ transform:perspective(700px) rotateY(7deg)  rotateX(5deg)  scale(.97); transform-origin:bottom right; }
-  .stage.fish .lens.tr{ transform:perspective(700px) rotateY(-7deg) rotateX(5deg)  scale(.97); transform-origin:bottom left; }
-  .stage.fish .lens.bl{ transform:perspective(700px) rotateY(7deg)  rotateX(-5deg) scale(.97); transform-origin:top right; }
-  .stage.fish .lens.br{ transform:perspective(700px) rotateY(-7deg) rotateX(-5deg) scale(.97); transform-origin:top left; }
-  .stage.fish .ctr{ transform:translate(-50%,-50%) scale(1.045); }
+  /* convex glass sheen — a curved highlight that makes each peripheral card read as bowed */
+  .lens .slot::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:1px;
+    background:radial-gradient(125% 100% at 50% 8%, rgba(255,255,255,.42), rgba(255,255,255,.05) 42%, rgba(50,48,43,.10) 100%);
+    mix-blend-mode:soft-light; opacity:.9; }
+  .lens .slot{ position:relative; }
+
+  /* reverse-stagger: open top→bl→br, fold close br→bl→top */
+  .stage.fish .lens.pos-top{ transition-delay:0s; }
+  .stage.fish .lens.pos-bl{ transition-delay:.06s; }
+  .stage.fish .lens.pos-br{ transition-delay:.12s; }
+  .stage.tunnel .lens.pos-br{ transition-delay:0s; }
+  .stage.tunnel .lens.pos-bl{ transition-delay:.06s; }
+  .stage.tunnel .lens.pos-top{ transition-delay:.12s; }
+
+  /* tunnel: aperture closed, cards pulled small (top keeps its centering offset) */
+  .stage.tunnel .lens{ opacity:0; pointer-events:none; transform:scale(.86); }
+  .stage.tunnel .lens.pos-top{ transform:translateX(-50%) scale(.86); }
+  /* fish-eye on: depth-of-field + each card fans outward (convex warp) */
+  .stage.fish .lens{ cursor:pointer; opacity:.72; filter:blur(1.2px); }
+  .stage.fish .lens.near{ opacity:.9; filter:blur(.8px); } .stage.fish .lens.far{ opacity:.64; filter:blur(1.6px); }
+  .stage.fish .lens.pos-top{ transform:translateX(-50%) perspective(560px) rotateX(10deg) scale(.95); transform-origin:bottom center; }
+  .stage.fish .lens.pos-bl{ transform:perspective(560px) rotateY(-13deg) rotateX(10deg) scale(.95); transform-origin:top right; }
+  .stage.fish .lens.pos-br{ transform:perspective(560px) rotateY(13deg)  rotateX(10deg) scale(.95); transform-origin:top left; }
 
   /* faint always-on corner arrow cue (no wording) */
-  .lens .cue{ position:absolute; top:6px; right:7px; opacity:0; transition:opacity .3s; color:var(--sage); pointer-events:none; }
+  .lens .cue{ position:absolute; top:6px; right:7px; opacity:0; transition:opacity .3s; color:var(--sage); pointer-events:none; z-index:2; }
   .stage.fish .lens:not(.is-focus) .cue{ opacity:.55; }
   .lens .cue svg{ display:block; }
 
-  /* hover/keyboard lifts a lens toward clarity — previews the click */
-  .stage.fish .lens:not(.is-focus):hover,
-  .stage.fish .lens:not(.is-focus):focus-visible{
-    opacity:1 !important; border-color:var(--sage);
-    transform:perspective(700px) scale(1.05) !important; z-index:6; }
-  .stage.fish .lens:not(.is-focus):hover .cue,
-  .stage.fish .lens:not(.is-focus):focus-visible .cue{ opacity:1; }
+  /* hover/keyboard pulls a lens flat + sharp — previews the click (un-warps toward focus) */
+  .stage.fish .lens:hover,
+  .stage.fish .lens:focus-visible{
+    opacity:1 !important; border-color:var(--sage); filter:blur(0) !important;
+    z-index:7; transition-delay:0s !important; }
+  .stage.fish .lens.pos-bl:hover, .stage.fish .lens.pos-br:hover,
+  .stage.fish .lens.pos-bl:focus-visible, .stage.fish .lens.pos-br:focus-visible{
+    transform:perspective(560px) scale(1.05) !important; }
+  .stage.fish .lens.pos-top:hover,
+  .stage.fish .lens.pos-top:focus-visible{
+    transform:translateX(-50%) perspective(560px) scale(1.05) !important; }
+  .stage.fish .lens:hover .cue,
+  .stage.fish .lens:focus-visible .cue{ opacity:1; }
 
   /* acquire control (single toggle, square ink) */
   .acquire{ display:inline-flex; align-items:center; gap:11px; cursor:pointer; margin:18px auto 0;
@@ -170,7 +210,13 @@
     transition:border-color .25s, background .25s; }
   .acquire:hover{ border-color:var(--sage); }
   .acquire.on{ border-color:var(--sage); color:var(--sage); background:rgba(95,115,85,.07); }
-  .acquire svg{ display:block; }
+  .acquire svg{ display:block; overflow:visible; }
+  /* reactive eye: lid blinks on toggle, pupil dilates when the lens is on */
+  .acquire .lid{ transform-box:fill-box; transform-origin:center; }
+  .acquire.blink .lid{ animation:blink .42s var(--ease); }
+  @keyframes blink{ 0%{transform:scaleY(1);} 45%{transform:scaleY(.08);} 100%{transform:scaleY(1);} }
+  .acquire .pupil{ transform-box:fill-box; transform-origin:center; transition:transform .4s var(--spring); }
+  .acquire.on .pupil{ transform:scale(1.3); }
   .read{ text-align:center; font-size:14px; color:var(--bark); margin-top:12px; min-height:3em; line-height:1.5; }
   .read .rec{ display:block; font-style:italic; color:var(--sage); font-size:12.5px; margin-top:6px; }
 
@@ -331,14 +377,16 @@
     </div>
     <div class="fisheye">
       <div class="stage tunnel" id="stage">
+        <div class="halo"></div>
+        <div class="iris-ring"></div>
+        <div class="periphery" id="periphery"><!-- lenses injected by JS --></div>
         <div class="lcard ctr" id="ctr"></div>
-        <!-- lenses injected by JS -->
       </div>
       <div style="text-align:center;">
         <button class="acquire" id="acquire">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3">
-            <circle cx="10" cy="10" r="8"/><path d="M2 10 Q10 4 18 10 Q10 16 2 10Z"/>
-            <circle cx="10" cy="10" r="2.4" fill="currentColor" stroke="none"/>
+            <g class="lid"><circle cx="10" cy="10" r="8"/><path d="M2 10 Q10 4 18 10 Q10 16 2 10Z"/></g>
+            <circle class="pupil" cx="10" cy="10" r="2.4" fill="currentColor" stroke="none"/>
           </svg><span id="acquireLabel">put on the fish-eye lens</span>
         </button>
       </div>
@@ -500,7 +548,11 @@
     {p:'SOCIOCULTURAL', q:'Whose knowledge counts?',   d:'The world the moment sits in: home, school, music.', img:'images/product-4.jpg'}
   ];
   const corners=['tl','tr','br','bl'];
+  const POS=['top','bl','br'];   // the three peripheral slots (focused card sits in center)
+  // slide-in start offset, keyed by the clicked card's current peripheral slot
+  const OFFSET={ top:['0','-50%'], bl:['-50%','50%'], br:['50%','50%'] };
   const stage=document.getElementById('stage');
+  const periphery=document.getElementById('periphery');
   const ctr=document.getElementById('ctr');
   const read=document.getElementById('read');
   const acquire=document.getElementById('acquire');
@@ -510,12 +562,12 @@
 
   L.forEach((d,i)=>{
     const n=document.createElement('div');
-    n.className='lcard lens '+corners[i]; n.dataset.i=i; n.tabIndex=-1;
+    n.className='lcard lens'; n.dataset.i=i; n.tabIndex=-1;
     n.innerHTML=cueSVG+`<div class="pn">${d.p}</div><div class="q">${d.q}</div>`+
                 `<div class="slot"><img src="${d.img}" alt=""></div>`;
-    n.addEventListener('click',()=>{ focusTo(i); });
-    n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); focusTo(i); }});
-    stage.appendChild(n);
+    n.addEventListener('click',()=>{ focusTo(i, n); });
+    n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); focusTo(i, n); }});
+    periphery.appendChild(n);
   });
 
   function paintCenter(){
@@ -527,28 +579,55 @@
   function paintLenses(){
     stage.classList.toggle('tunnel',!fishOn);
     stage.classList.toggle('fish',fishOn);
+    const others=[0,1,2,3].filter(i=>i!==focus);   // the three non-focused cards
     stage.querySelectorAll('.lens').forEach(node=>{
-      const i=+node.dataset.i; node.classList.remove('is-focus','near','far');
-      if(i===focus){ node.classList.add('is-focus'); }
-      else{ const dist=Math.min((i-focus+4)%4,(focus-i+4)%4); node.classList.add(dist===1?'near':'far'); }
-      node.tabIndex = (fishOn && i!==focus) ? 0 : -1;
+      const i=+node.dataset.i;
+      node.classList.remove('pos-top','pos-bl','pos-br','near','far','hidden');
+      if(i===focus){ node.classList.add('hidden'); node.dataset.pos=''; node.tabIndex=-1; return; }
+      const slot=POS[others.indexOf(i)];
+      node.classList.add('pos-'+slot, slot==='top'?'far':'near');
+      node.dataset.pos=slot;
+      node.tabIndex = fishOn ? 0 : -1;
     });
-    read.innerHTML='';
     acquire.classList.toggle('on',fishOn);
     acquireLabel.textContent = fishOn ? 'take off the fish-eye lens' : 'put on the fish-eye lens';
+    stage.style.setProperty('--fish', fishOn ? 1 : 0);   // drives iris, halo, ring
+    read.innerHTML = fishOn ? `<span class="rec">focused: ${L[focus].p.toLowerCase()} — the rest stay in frame</span>` : '';
   }
-  function render(){ paintCenter(); paintLenses(); }
-  function focusTo(i){
+  function ctrRest(){ ctr.style.setProperty('--tx','0px'); ctr.style.setProperty('--ty','0px');
+    ctr.style.setProperty('--sc','1'); ctr.style.setProperty('--clip','circle(140% at 50% 50%)'); ctr.style.opacity='1'; }
+  function render(){ paintCenter(); ctrRest(); paintLenses(); }
+
+  // slide-from-slot: the newly-focused card flies in from wherever it sat in the periphery
+  function focusTo(i, node){
     if(!fishOn || i===focus) return;
+    const slot=(node && node.dataset.pos) || 'top';
     focus=i;
     track('fisheye_focus', { camp: L[i].p.toLowerCase(), label: L[i].q });
-    paintLenses();                 // periphery reshuffles the instant you click
-    ctr.style.opacity='0';         // center crossfades to the newly-focused view
-    setTimeout(()=>{ paintCenter(); ctr.style.opacity='1'; }, 230);
+    paintLenses();                                   // periphery reshuffles the instant you click
+    ctr.style.transition='opacity .12s ease';
+    ctr.style.opacity='0';                           // brief out
+    setTimeout(()=>{
+      paintCenter();
+      ctr.style.transition='none';                   // set start offset instantly
+      ctr.style.setProperty('--tx',OFFSET[slot][0]);
+      ctr.style.setProperty('--ty',OFFSET[slot][1]);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        ctr.style.transition='opacity .45s var(--ease), transform .6s var(--spring)';
+        ctrRest();                                   // springs to center, fades in
+      }));
+    }, 120);
   }
   acquire.addEventListener('click',()=>{
-    fishOn=!fishOn; if(!fishOn) focus=0; render();
-    track('fisheye_toggle', { lens_on: fishOn });
+    fishOn=!fishOn;                                  // keep focus on the last-clicked card when closing
+    track('fisheye_toggle', { lens_on: fishOn, focus: L[focus].p.toLowerCase() });
+    // reactive eye + gentle center settle (overshoot via spring, no shape morph)
+    acquire.classList.remove('blink'); void acquire.offsetWidth; acquire.classList.add('blink');
+    acquire.classList.toggle('on',fishOn);
+    acquireLabel.textContent = fishOn ? 'take off the fish-eye lens' : 'put on the fish-eye lens';
+    ctr.style.transition='transform .6s var(--spring), opacity .3s ease';
+    ctr.style.setProperty('--sc', fishOn ? '1.06' : '.96'); ctr.style.opacity='.55';
+    setTimeout(()=>{ render(); }, 80);              // held breath, then aperture opens/closes
   });
   render();
 
