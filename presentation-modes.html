@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fish-eye — presentation mode prototypes</title>
+<style>
+  :root{
+    --page:#eef1ea; --haze:#e4e9df; --ink:#33302b; --bark:#6b6253;
+    --glint:#8a8478; --glint-rule:#cdd3c4; --sage:#5f7355; --sage-soft:#8fa382;
+    --fruit:#9c3b2e; --rule:#d6dccd; --line:#b9b3a6; --line-soft:#cdd3c4;
+    --bloom:rgba(143,163,130,0.22);
+    --spring:cubic-bezier(.34,1.42,.5,1); --ease:cubic-bezier(.16,1,.3,1);
+    /* one hue per camp, drained botanical */
+    --c-beh:#7c6a8f; --c-cog:#4f7d86; --c-sit:#7d8a4a; --c-soc:#b06a44;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{ background:radial-gradient(120% 60% at 50% 0%, #f2f4ee 0%, var(--page) 45%, var(--haze) 100%);
+    color:var(--ink); font-family:Georgia,'Iowan Old Style',serif; font-size:18px; line-height:1.6;
+    -webkit-font-smoothing:antialiased; min-height:100vh; padding:32px 20px 120px; }
+  .wrap{ max-width:880px; margin:0 auto; }
+  h1{ font-weight:normal; font-size:28px; letter-spacing:-.02em; margin-bottom:4px; }
+  .sub{ color:var(--bark); font-size:14px; margin-bottom:22px; }
+  .sys{ font-family:system-ui,sans-serif; }
+
+  /* mode tabs */
+  .tabs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  .tab{ font-family:system-ui,sans-serif; font-size:12.5px; letter-spacing:.02em; color:var(--ink);
+    background:rgba(255,255,255,.55); border:1px solid var(--line); border-radius:3px; padding:9px 14px;
+    cursor:pointer; transition:all .2s; }
+  .tab:hover{ border-color:var(--sage); }
+  .tab.on{ border-color:var(--sage); color:var(--sage); background:rgba(95,115,85,.1); font-weight:bold; }
+  .modedesc{ font-size:13.5px; color:var(--bark); font-style:italic; min-height:2.6em; margin:10px 0 22px;
+    border-left:2px solid var(--glint-rule); padding-left:14px; }
+
+  .mode{ display:none; }
+  .mode.on{ display:block; }
+  .stagewrap{ display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+  .panel{ flex:1; min-width:240px; }
+  .panel .pn{ font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+  .panel h3{ font-weight:normal; font-size:24px; margin:6px 0 10px; }
+  .panel p{ font-size:15px; color:var(--bark); }
+  .hint{ font-family:system-ui,sans-serif; font-size:11.5px; color:var(--glint); margin-top:14px; }
+
+  /* ════════ MODE 1 — nested concentric zoom ════════ */
+  .rings{ position:relative; width:min(100%,420px); aspect-ratio:1/1; flex:0 0 auto; }
+  .ring{ position:absolute; top:50%; left:50%; border-radius:50%; cursor:pointer;
+    transform:translate(-50%,-50%); display:flex; align-items:flex-start; justify-content:center;
+    transition:all .6s var(--spring); border:1.5px solid; }
+  .ring .rlab{ font-family:system-ui,sans-serif; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    margin-top:6px; padding:2px 8px; border-radius:10px; background:var(--page); transition:all .3s; }
+  .ring.r0{ width:100%;  height:100%;  border-color:var(--c-soc); background:rgba(176,106,68,.06); z-index:1; }
+  .ring.r1{ width:74%;   height:74%;   border-color:var(--c-sit); background:rgba(125,138,74,.07); z-index:2; }
+  .ring.r2{ width:50%;   height:50%;   border-color:var(--c-cog); background:rgba(79,125,134,.08); z-index:3; }
+  .ring.r3{ width:27%;   height:27%;   border-color:var(--c-beh); background:rgba(124,106,143,.12); z-index:4;
+    align-items:center; }
+  .ring.dim{ opacity:.4; filter:saturate(.5); }
+  .ring.sel{ box-shadow:0 0 0 4px var(--bloom); }
+
+  /* ════════ MODE 2 — single scene, swappable lens ════════ */
+  .scene{ position:relative; width:min(100%,440px); aspect-ratio:4/3; flex:0 0 auto;
+    border:1px solid var(--line); border-radius:4px; overflow:hidden; background:#dfe3d8; }
+  .scene img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .scene .fallback{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--glint); font-family:system-ui,sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
+  /* the lens spotlight: a soft circle that tints + sharpens one region per camp */
+  .spot{ position:absolute; width:46%; aspect-ratio:1/1; border-radius:50%; pointer-events:none;
+    border:2px solid #fff; box-shadow:0 0 0 9999px rgba(40,44,38,.42), 0 8px 30px rgba(0,0,0,.25);
+    transition:left .6s var(--spring), top .6s var(--spring), border-color .4s, opacity .4s; opacity:0; }
+  .scene.lenson .spot{ opacity:1; }
+  .lenspick{ display:flex; flex-wrap:wrap; gap:7px; margin-top:14px; }
+  .lenspill{ font-family:system-ui,sans-serif; font-size:12px; border:1px solid var(--line); border-radius:20px;
+    padding:6px 13px; cursor:pointer; background:rgba(255,255,255,.6); transition:all .2s; }
+  .lenspill:hover{ border-color:var(--sage); }
+  .lenspill.on{ color:#fff; border-color:transparent; }
+  .gistlist{ margin-top:16px; }
+  .gistrow{ font-size:13px; color:var(--bark); padding:5px 0; border-bottom:1px dashed var(--glint-rule);
+    display:flex; gap:9px; align-items:baseline; transition:opacity .3s; }
+  .gistrow .dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; transform:translateY(2px); }
+  .gistrow.muted{ opacity:.45; }
+  .gistrow b{ font-weight:normal; font-family:system-ui,sans-serif; font-size:10.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink); }
+
+  /* ════════ MODE 3 — relational field (axes) ════════ */
+  .field{ position:relative; width:min(100%,440px); aspect-ratio:1/1; flex:0 0 auto;
+    border:1px solid var(--glint-rule); border-radius:4px; background:
+      linear-gradient(rgba(143,163,130,.05),rgba(143,163,130,.05)); }
+  .axis{ position:absolute; background:var(--glint-rule); }
+  .axis.h{ left:0; right:0; top:50%; height:1px; } .axis.v{ top:0; bottom:0; left:50%; width:1px; }
+  .axlab{ position:absolute; font-family:system-ui,sans-serif; font-size:10px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--glint); }
+  .node{ position:absolute; transform:translate(-50%,-50%); cursor:pointer; z-index:3;
+    display:flex; flex-direction:column; align-items:center; gap:5px; transition:transform .3s var(--spring); }
+  .node .bub{ width:18px; height:18px; border-radius:50%; border:2px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,.15);
+    transition:all .3s var(--spring); }
+  .node .nlab{ font-family:system-ui,sans-serif; font-size:11px; color:var(--ink); white-space:nowrap;
+    background:var(--page); padding:1px 6px; border-radius:8px; }
+  .node:hover{ transform:translate(-50%,-50%) scale(1.08); }
+  .node.sel .bub{ width:26px; height:26px; }
+  .node.faded{ opacity:.35; }
+  .edges{ position:absolute; inset:0; z-index:1; pointer-events:none; }
+
+  /* ════════ MODE 4 — draggable lens over concept graph ════════ */
+  .graph{ position:relative; width:min(100%,560px); aspect-ratio:4/3; flex:0 0 auto;
+    border:1px solid var(--glint-rule); border-radius:4px; overflow:hidden; cursor:none;
+    background:radial-gradient(circle at 50% 40%, #f3f5ef, var(--haze)); touch-action:none; }
+  .gedges{ position:absolute; inset:0; z-index:1; pointer-events:none; }
+  .gnode{ position:absolute; transform:translate(-50%,-50%); z-index:2; display:flex; flex-direction:column;
+    align-items:center; gap:3px; pointer-events:none; }
+  .gnode .gdot{ width:9px; height:9px; border-radius:50%; background:var(--sage-soft); transition:all .25s; }
+  .gnode .glab{ font-family:system-ui,sans-serif; font-size:11px; color:var(--ink); background:rgba(238,241,234,.9);
+    padding:1px 6px; border-radius:7px; opacity:0; transform:translateY(-2px); transition:opacity .25s, transform .25s;
+    max-width:150px; text-align:center; line-height:1.25; }
+  .gnode .ggist{ font-size:10px; color:var(--bark); font-style:italic; opacity:0; transition:opacity .25s; max-width:160px; text-align:center; }
+  .gnode.lit .gdot{ width:13px; height:13px; background:var(--sage); }
+  .gnode.lit .glab{ opacity:1; transform:translateY(0); }
+  .gnode.lit .ggist{ opacity:1; }
+  .glens{ position:absolute; border-radius:50%; pointer-events:none; z-index:3;
+    transform:translate(-50%,-50%); border:1.5px solid var(--sage);
+    background:radial-gradient(circle at 50% 40%, rgba(255,255,255,.25), rgba(143,163,130,.06) 55%, transparent 72%);
+    box-shadow:0 0 0 1px rgba(255,255,255,.5) inset, 0 8px 30px rgba(95,115,85,.2); opacity:0; transition:opacity .25s; }
+  .graph:hover .glens{ opacity:1; }
+
+  /* ════════ MODE 5 — draggable lens over one scene, normal ↔ fish-eye ════════ */
+  .lenstoggle{ display:flex; gap:8px; align-items:center; margin-bottom:14px; font-family:system-ui,sans-serif; }
+  .lenstoggle .lab{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--glint); margin-right:4px; }
+  .seg{ font-family:system-ui,sans-serif; font-size:12.5px; color:var(--ink); background:rgba(255,255,255,.6);
+    border:1px solid var(--line); border-radius:3px; padding:8px 14px; cursor:pointer; transition:all .2s;
+    display:inline-flex; align-items:center; gap:8px; }
+  .seg:hover{ border-color:var(--sage); }
+  .seg.on{ border-color:var(--sage); color:var(--sage); background:rgba(95,115,85,.1); font-weight:bold; }
+  .seg svg{ display:block; }
+  .cscene{ position:relative; width:min(100%,500px); aspect-ratio:4/3; flex:0 0 auto; overflow:hidden;
+    border:1px solid var(--line); border-radius:4px; background:#dfe3d8; cursor:none; touch-action:none; }
+  .cscene img.base{ width:100%; height:100%; object-fit:cover; display:block; transition:filter .4s; }
+  .cscene .fallback{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--glint); font-family:system-ui,sans-serif; font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
+  /* the magnifier lens (shared) */
+  .clens{ position:absolute; width:170px; height:170px; border-radius:50%; transform:translate(-50%,-50%);
+    pointer-events:none; opacity:0; z-index:5;
+    transition:opacity .25s, box-shadow .45s var(--ease), border-color .35s; }
+  .cscene.show .clens{ opacity:1; }
+  /* simple circular magnifier — no distortion filter, just a clean clipped lens */
+  .clens-clip{ position:absolute; inset:0; z-index:0; }
+  .clens-img{ position:absolute; inset:0; background-repeat:no-repeat; border-radius:50%; }
+  /* NORMAL: hard ring, the rest of the scene goes near-opaque — tunnel vision (just a trace of context) */
+  .clens.normal{ border:2px solid #fff;
+    box-shadow:0 0 0 9999px rgba(28,32,26,.90), 0 10px 34px rgba(0,0,0,.35); }
+  /* FISH-EYE: warm convex glass — references the index.html fish-eye (sage ring, bloom glow, the
+     radial 125%@50% 8% soft-light sheen), nudged warmer so it reads inviting next to the cold normal lens */
+  .clens.fish{ border:2px solid var(--sage);
+    box-shadow: inset 0 0 26px 7px rgba(60,42,22,.20),    /* gentle spherical edge falloff */
+                inset 0 0 0 1px rgba(255,248,236,.55),
+                0 0 50px 11px rgba(196,150,92,.38),
+                0 0 20px 4px var(--bloom), 0 8px 28px rgba(120,80,40,.18); }
+  /* warm wash inside the lens — the focus feels lit, not clinical */
+  .clens.fish::before{ content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none; z-index:1;
+    background:radial-gradient(circle at 50% 62%, rgba(214,150,84,.20), rgba(214,150,84,0) 70%); }
+  /* convex glass sheen — same recipe as index.html, warmed at the highlights/shadows */
+  .clens.fish::after{ content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none; z-index:2;
+    background:radial-gradient(125% 100% at 50% 8%, rgba(255,250,242,.46), rgba(255,255,255,.06) 42%, rgba(60,44,30,.15) 100%);
+    mix-blend-mode:soft-light; }
+  .cscene.fishmode.show img.base{ filter:saturate(1.05) sepia(.05); }
+  /* peripheral gist chips — only in fish-eye, arced around the rim */
+  .rimchip{ position:absolute; z-index:6; pointer-events:none;
+    font-family:system-ui,sans-serif; font-size:10.5px; line-height:1.22; max-width:120px; text-align:center;
+    background:rgba(243,239,231,.94); border:1px solid var(--glint-rule); border-radius:10px; padding:4px 8px;
+    opacity:0; transition:opacity .3s; box-shadow:0 3px 12px rgba(0,0,0,.12);
+    filter:blur(.25px); }   /* periphery: present but slightly soft, transform set per-chip in JS */
+  .cscene.fishmode.show .rimchip{ opacity:.95; }
+  .rimchip b{ display:block; font-size:9px; letter-spacing:.06em; text-transform:uppercase; }
+  /* a small caption that rides just under the lens naming the focused camp */
+  .clabel{ position:absolute; transform:translate(-50%,0); z-index:6; pointer-events:none; opacity:0;
+    font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.04em; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.6);
+    transition:opacity .25s; white-space:nowrap; }
+  .cscene.show .clabel{ opacity:1; }
+
+  @media(prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important;} }
+  @media(max-width:760px){ .stagewrap{ flex-direction:column; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Fish-eye — presentation mode prototypes</h1>
+  <p class="sub">Four ways to show the four learning-theory camps held at once. Each tries to fix the relational gap differently.</p>
+
+  <div class="tabs">
+    <button class="tab on" data-m="rings">1 · Nested zoom</button>
+    <button class="tab" data-m="scene">2 · One scene, swappable lens</button>
+    <button class="tab" data-m="axes">3 · Relational field</button>
+    <button class="tab" data-m="graph">4 · Draggable lens</button>
+    <button class="tab" data-m="combo">5 · Drag + fish-eye toggle</button>
+  </div>
+  <p class="modedesc" id="modedesc"></p>
+
+  <!-- ───── MODE 1 ───── -->
+  <section class="mode on" data-mode="rings">
+    <div class="stagewrap">
+      <div class="rings" id="rings"></div>
+      <div class="panel">
+        <div class="pn" id="r-pn"></div>
+        <h3 id="r-q"></h3>
+        <p id="r-d"></p>
+        <p class="hint">The camps as nested levels of abstraction — behaviour at the core, culture at the rim. Click a ring to bring that level into focus; the others stay as context around it. (Amelia's fish → ocean → school.)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── MODE 2 ───── -->
+  <section class="mode" data-mode="scene">
+    <div class="stagewrap">
+      <div class="scene" id="scene">
+        <img src="images/camp-situated.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="fallback" style="display:none">the same scene · maya in class</div>
+        <div class="spot" id="spot"></div>
+      </div>
+      <div class="panel">
+        <div class="pn" id="s-pn"></div>
+        <h3 id="s-q"></h3>
+        <p id="s-d"></p>
+        <div class="lenspick" id="lenspick"></div>
+        <div class="gistlist" id="gistlist"></div>
+        <p class="hint">One scene, four readings. The lens moves to what each camp looks at; the rest stay listed as gist — present, not gone. (Truest to Wattenberger's "same image three times.")</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── MODE 3 ───── -->
+  <section class="mode" data-mode="axes">
+    <div class="stagewrap">
+      <div class="field" id="field">
+        <div class="axis h"></div><div class="axis v"></div>
+        <svg class="edges" id="edges"></svg>
+      </div>
+      <div class="panel">
+        <div class="pn" id="a-pn"></div>
+        <h3 id="a-q"></h3>
+        <p id="a-d"></p>
+        <p id="a-rel" style="font-size:13px;margin-top:8px;"></p>
+        <p class="hint">Each camp placed by what it cares about: individual ↔ collective, measurable ↔ interpretive. Click one — the lines show how strongly it overlaps the others. Answers "where does it sit in relation?"</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── MODE 4 ───── -->
+  <section class="mode" data-mode="graph">
+    <div class="stagewrap">
+      <div class="graph" id="graph">
+        <svg class="gedges" id="gedges"></svg>
+        <div class="glens" id="glens"></div>
+      </div>
+      <div class="panel">
+        <div class="pn sys" style="color:var(--sage)">MOVE THE LENS</div>
+        <h3>What's around what you're looking at?</h3>
+        <p>Drag the lens across the field. Concepts under it reveal their gist; everything else stays a quiet dot — context you can feel but aren't reading yet.</p>
+        <p class="hint">The Obsidian idea: information isn't isolated, it's information + neighbours. A literal movable fish-eye over a knowledge graph.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── MODE 5 ───── -->
+  <section class="mode" data-mode="combo">
+    <div class="lenstoggle">
+      <span class="lab">Lens</span>
+      <button class="seg on" id="lens-normal">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7.5" cy="7.5" r="5"/><path d="M11.2 11.2 L15.5 15.5"/></svg>
+        normal
+      </button>
+      <button class="seg" id="lens-fish">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="9" cy="9" r="7"/><path d="M2 9 Q9 4 16 9 Q9 14 2 9Z"/><circle cx="9" cy="9" r="1.8" fill="currentColor" stroke="none"/></svg>
+        fish-eye
+      </button>
+    </div>
+    <div class="stagewrap">
+      <div class="cscene show" id="cscene">
+        <img class="base" src="images/camp-situated.jpg" alt="" onerror="this.style.display='none';this.parentElement.querySelector('.fallback').style.display='flex'">
+        <div class="fallback" style="display:none">the same scene · maya in class</div>
+        <div class="clabel" id="clabel"></div>
+        <div class="clens normal" id="clens"><div class="clens-clip"><div class="clens-img" id="clens-img"></div></div></div>
+      </div>
+      <div class="panel">
+        <div class="pn" id="c-pn"></div>
+        <h3 id="c-q">Hover the scene →</h3>
+        <p id="c-d"></p>
+        <p class="hint" id="c-hint">Normal lens: you see one camp in detail, the rest goes dark — tunnel vision. Switch to fish-eye and the other readings curve back in around the rim.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const CAMPS=[
+  {key:'beh', p:'BEHAVIORIST',   q:'What can she do?',         d:'Learning is observable behaviour, drilled and reinforced until it holds.', gist:'the worksheet — drill ¾ to mastery', look:[68,72], var:'--c-beh', xy:[.18,.16]},
+  {key:'cog', p:'COGNITIVE',     q:'What does she understand?',d:'Learning is the mind\'s machinery — the schema knitting together underneath.', gist:'her head — the part-whole schema', look:[42,38], var:'--c-cog', xy:[.34,.44]},
+  {key:'sit', p:'SITUATED',      q:'How does she participate?',d:'Learning is social and distributed — across partners, tools, the activity itself.', gist:'the table — partner, tiles, talk', look:[58,55], var:'--c-sit', xy:[.66,.56]},
+  {key:'soc', p:'SOCIOCULTURAL', q:'Whose knowledge counts?',  d:'Learning is cultural — shaped by community, never neutral about whose knowledge counts.', gist:'the room & beyond — home, power', look:[30,68], var:'--c-soc', xy:[.83,.85]},
+];
+const cssvar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+const MODE_DESC={
+  rings:'Mode 1 — the four camps as concentric levels of abstraction. Behaviour at the centre, culture at the rim; focusing zooms a level without dropping the rest.',
+  scene:'Mode 2 — one illustration, four interpretations. The lens travels to what each camp attends to; the others remain as gist on the side.',
+  axes:'Mode 3 — a relational map. Position encodes what each camp values; edges encode how strongly they overlap. The relationship is the point.',
+  graph:'Mode 4 — a draggable fish-eye over a concept graph. Whatever sits under the lens becomes legible; its neighbours stay as context.',
+  combo:'Mode 5 — drag a magnifier over one scene of Maya. Toggle the lens type: normal darkens everything but the focus (tunnel vision); fish-eye keeps the other camps\' readings curving in around the rim (focus + context).'
+};
+
+/* ───────── tab switching ───────── */
+const desc=document.getElementById('modedesc');
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.mode').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    const m=t.dataset.m;
+    document.querySelector(`.mode[data-mode="${m}"]`).classList.add('on');
+    desc.textContent=MODE_DESC[m];
+    if(m==='axes') drawEdges();
+    if(m==='graph') layoutGraph();
+  });
+});
+desc.textContent=MODE_DESC.rings;
+
+/* ───────── MODE 1: nested rings ───────── */
+(function(){
+  const ringsEl=document.getElementById('rings');
+  const order=['soc','sit','cog','beh'];      // outer → inner
+  const byKey=Object.fromEntries(CAMPS.map(c=>[c.key,c]));
+  let sel='beh';
+  order.forEach((k,idx)=>{
+    const c=byKey[k];
+    const r=document.createElement('div');
+    r.className='ring r'+idx; r.dataset.key=k;
+    r.innerHTML=`<span class="rlab" style="color:${cssvar(c.var)}">${c.p}</span>`;
+    r.addEventListener('click',e=>{ e.stopPropagation(); pick(k); });
+    ringsEl.appendChild(r);
+  });
+  function pick(k){
+    sel=k;
+    ringsEl.querySelectorAll('.ring').forEach(r=>{
+      r.classList.toggle('sel', r.dataset.key===k);
+      r.classList.toggle('dim', r.dataset.key!==k);
+    });
+    const c=byKey[k];
+    document.getElementById('r-pn').textContent=c.p; document.getElementById('r-pn').style.color=cssvar(c.var);
+    document.getElementById('r-q').textContent=c.q;
+    document.getElementById('r-d').textContent=c.d;
+  }
+  pick('beh');
+})();
+
+/* ───────── MODE 2: one scene, swappable lens ───────── */
+(function(){
+  const scene=document.getElementById('scene'), spot=document.getElementById('spot');
+  const pick=document.getElementById('lenspick'), gl=document.getElementById('gistlist');
+  let sel=null;
+  CAMPS.forEach(c=>{
+    const b=document.createElement('button'); b.className='lenspill'; b.textContent=c.p.toLowerCase();
+    b.dataset.key=c.key;
+    b.addEventListener('click',()=>choose(c.key));
+    pick.appendChild(b);
+    const row=document.createElement('div'); row.className='gistrow'; row.dataset.key=c.key;
+    row.innerHTML=`<span class="dot" style="background:${cssvar(c.var)}"></span><span><b>${c.p}</b> — ${c.gist}</span>`;
+    gl.appendChild(row);
+  });
+  function choose(k){
+    sel=k; const c=CAMPS.find(x=>x.key===k);
+    scene.classList.add('lenson');
+    spot.style.left=c.look[0]+'%'; spot.style.top=c.look[1]+'%';
+    spot.style.transform='translate(-50%,-50%)'; spot.style.borderColor=cssvar(c.var);
+    document.getElementById('s-pn').textContent=c.p; document.getElementById('s-pn').style.color=cssvar(c.var);
+    document.getElementById('s-q').textContent=c.q;
+    document.getElementById('s-d').textContent=c.d;
+    pick.querySelectorAll('.lenspill').forEach(p=>{
+      const on=p.dataset.key===k; p.classList.toggle('on',on);
+      p.style.background=on?cssvar(c.var):''; });
+    gl.querySelectorAll('.gistrow').forEach(r=>r.classList.toggle('muted', r.dataset.key!==k));
+  }
+  document.getElementById('s-q').textContent='Pick a lens →';
+  spot.style.transform='translate(-50%,-50%)';
+})();
+
+/* ───────── MODE 3: relational field ───────── */
+const REL={ 'beh-cog':.8,'cog-sit':.6,'sit-soc':.8,'beh-sit':.3,'cog-soc':.4,'beh-soc':.15 };
+function relOf(a,b){ return REL[a+'-'+b] ?? REL[b+'-'+a] ?? 0; }
+let axesBuilt=false;
+function buildAxes(){
+  const field=document.getElementById('field');
+  ['left:8px;top:50%;|individual','right:8px;top:50%;|collective','left:50%;top:6px;|measurable','left:50%;bottom:6px;|interpretive']
+    .forEach((s,i)=>{ const [css,txt]=s.split('|'); const el=document.createElement('span'); el.className='axlab';
+      el.style.cssText=css+(i<2?'transform:translateY(-50%);':'transform:translateX(-50%);'); el.textContent=txt; field.appendChild(el); });
+  CAMPS.forEach(c=>{
+    const n=document.createElement('div'); n.className='node'; n.dataset.key=c.key;
+    n.style.left=(c.xy[0]*100)+'%'; n.style.top=(c.xy[1]*100)+'%';
+    n.innerHTML=`<span class="bub" style="background:${cssvar(c.var)}"></span><span class="nlab">${c.p.toLowerCase()}</span>`;
+    n.addEventListener('click',()=>selectNode(c.key));
+    field.appendChild(n);
+  });
+  axesBuilt=true;
+}
+function drawEdges(){
+  const first=!axesBuilt;
+  if(!axesBuilt) buildAxes();
+  const svg=document.getElementById('edges'); const W=svg.clientWidth||420, H=svg.clientHeight||420;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.innerHTML='';
+  for(let i=0;i<CAMPS.length;i++)for(let j=i+1;j<CAMPS.length;j++){
+    const a=CAMPS[i],b=CAMPS[j],w=relOf(a.key,b.key);
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',a.xy[0]*W); ln.setAttribute('y1',a.xy[1]*H);
+    ln.setAttribute('x2',b.xy[0]*W); ln.setAttribute('y2',b.xy[1]*H);
+    ln.setAttribute('stroke','#9aa48f'); ln.setAttribute('stroke-width',(w*5).toFixed(1));
+    ln.setAttribute('stroke-opacity',(0.15+w*0.25).toFixed(2)); ln.dataset.a=a.key; ln.dataset.b=b.key;
+    svg.appendChild(ln);
+  }
+  if(first) selectNode('beh');
+}
+function selectNode(k){
+  const c=CAMPS.find(x=>x.key===k);
+  document.querySelectorAll('#field .node').forEach(n=>{
+    n.classList.toggle('sel',n.dataset.key===k); n.classList.toggle('faded',n.dataset.key!==k); });
+  document.querySelectorAll('#edges line').forEach(l=>{
+    const on=l.dataset.a===k||l.dataset.b===k;
+    l.setAttribute('stroke',on?cssvar(c.var):'#9aa48f');
+    l.setAttribute('stroke-opacity',on?'.85':'.1');
+  });
+  document.getElementById('a-pn').textContent=c.p; document.getElementById('a-pn').style.color=cssvar(c.var);
+  document.getElementById('a-q').textContent=c.q;
+  document.getElementById('a-d').textContent=c.d;
+  const rels=CAMPS.filter(x=>x.key!==k).map(x=>({x,w:relOf(k,x.key)})).sort((p,q)=>q.w-p.w);
+  document.getElementById('a-rel').innerHTML='Overlaps most with <b style="font-style:normal">'+rels[0].x.p.toLowerCase()+
+    '</b>, least with <b style="font-style:normal">'+rels[rels.length-1].x.p.toLowerCase()+'</b>.';
+}
+
+/* ───────── MODE 4: draggable lens over concept graph ───────── */
+const GNODES=[
+  {n:'Khanmigo',g:'AI tutor, mastery drilling',x:.18,y:.30,cl:'beh'},
+  {n:'Anki',g:'spaced repetition',x:.10,y:.62,cl:'beh'},
+  {n:'Duolingo',g:'streaks & reinforcement',x:.30,y:.78,cl:'beh'},
+  {n:'Cognitive Tutor',g:'diagnoses the misconception',x:.40,y:.22,cl:'cog'},
+  {n:'worked examples',g:'schema building',x:.52,y:.45,cl:'cog'},
+  {n:'study group',g:'arguing it out together',x:.70,y:.35,cl:'sit'},
+  {n:'maker club',g:'tools in hand',x:.82,y:.58,cl:'sit'},
+  {n:'apprenticeship',g:'learning by participating',x:.62,y:.70,cl:'sit'},
+  {n:'whose math?',g:'whose knowledge counts',x:.86,y:.84,cl:'soc'},
+  {n:'funds of knowledge',g:'her world as curriculum',x:.50,y:.88,cl:'soc'},
+  {n:'identity',g:'who she becomes',x:.92,y:.30,cl:'soc'},
+];
+const GEDGES=[[0,3],[3,4],[4,5],[5,6],[5,7],[7,9],[9,8],[8,10],[1,2],[2,4],[6,8]];
+let graphBuilt=false, glensR=85;
+function layoutGraph(){
+  const graph=document.getElementById('graph');
+  if(graphBuilt){ drawGEdges(); return; }
+  GNODES.forEach((nd,i)=>{
+    const el=document.createElement('div'); el.className='gnode'; el.dataset.i=i;
+    el.style.left=(nd.x*100)+'%'; el.style.top=(nd.y*100)+'%';
+    el.innerHTML=`<span class="gdot" style="background:${cssvar('--c-'+nd.cl)}"></span>`+
+                 `<span class="glab">${nd.n}</span><span class="ggist">${nd.g}</span>`;
+    graph.appendChild(el);
+  });
+  const lens=document.getElementById('glens'); lens.style.width=glensR*2+'px'; lens.style.height=glensR*2+'px';
+  graph.addEventListener('pointermove',e=>{
+    const r=graph.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top;
+    lens.style.left=mx+'px'; lens.style.top=my+'px';
+    graph.querySelectorAll('.gnode').forEach(el=>{
+      const nd=GNODES[+el.dataset.i];
+      const dx=nd.x*r.width-mx, dy=nd.y*r.height-my;
+      el.classList.toggle('lit', Math.hypot(dx,dy)<glensR);
+    });
+  });
+  graph.addEventListener('pointerleave',()=>graph.querySelectorAll('.gnode').forEach(el=>el.classList.remove('lit')));
+  graphBuilt=true; drawGEdges();
+}
+function drawGEdges(){
+  const svg=document.getElementById('gedges'); const W=svg.clientWidth||560,H=svg.clientHeight||420;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.innerHTML='';
+  GEDGES.forEach(([a,b])=>{
+    const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',GNODES[a].x*W); ln.setAttribute('y1',GNODES[a].y*H);
+    ln.setAttribute('x2',GNODES[b].x*W); ln.setAttribute('y2',GNODES[b].y*H);
+    ln.setAttribute('stroke','#a9b29d'); ln.setAttribute('stroke-width','1'); ln.setAttribute('stroke-opacity','.4');
+    svg.appendChild(ln);
+  });
+}
+/* ───────── MODE 5: drag + normal/fish-eye toggle over one scene ───────── */
+(function(){
+  const scene=document.getElementById('cscene'), lens=document.getElementById('clens');
+  const lensImg=document.getElementById('clens-img');
+  const label=document.getElementById('clabel');
+  const img=scene.querySelector('img.base');
+  const R=85, Z=1.9;                       // lens radius, magnify factor
+  let fish=false;
+  // magnifier background = the scene image
+  lensImg.style.backgroundImage=`url("${img.getAttribute('src')}")`;
+  // three peripheral chips (used only in fish-eye)
+  const chips=[0,1,2].map(()=>{ const c=document.createElement('div'); c.className='rimchip'; scene.appendChild(c); return c; });
+  const RIM_ANG=[-90,150,30];              // top, lower-left, lower-right (degrees)
+
+  function nearest(mx,my,W,H){
+    let best=CAMPS[0], bd=Infinity;
+    CAMPS.forEach(c=>{ const dx=c.look[0]/100*W-mx, dy=c.look[1]/100*H-my; const d=dx*dx+dy*dy;
+      if(d<bd){ bd=d; best=c; } });
+    return best;
+  }
+  function move(e){
+    const r=scene.getBoundingClientRect(), W=r.width, H=r.height;
+    const mx=Math.max(0,Math.min(W,e.clientX-r.left)), my=Math.max(0,Math.min(H,e.clientY-r.top));
+    lens.style.left=mx+'px'; lens.style.top=my+'px';
+    lensImg.style.backgroundSize=`${W*Z}px ${H*Z}px`;
+    lensImg.style.backgroundPosition=`${R-mx*Z}px ${R-my*Z}px`;
+    const c=nearest(mx,my,W,H);
+    lens.style.borderColor = fish ? cssvar(c.var) : '#fff';
+    label.textContent=c.p.toLowerCase(); label.style.left=mx+'px'; label.style.top=(my+R+8)+'px';
+    document.getElementById('c-pn').textContent=c.p; document.getElementById('c-pn').style.color=cssvar(c.var);
+    document.getElementById('c-q').textContent=c.q;
+    document.getElementById('c-d').textContent=c.d;
+    // fish-eye: the other three camps wrap around the sphere — hugging the rim, tilted in 3D,
+    // compressed/curved like a true fisheye periphery (present, warped, not gone)
+    if(fish){
+      const others=CAMPS.filter(x=>x.key!==c.key);
+      // [tilt transform, distance from center] per rim slot: top, lower-left, lower-right
+      const WARP=[
+        'perspective(260px) rotateX(34deg)',
+        'perspective(260px) rotateY(40deg) rotate(-8deg)',
+        'perspective(260px) rotateY(-40deg) rotate(8deg)'
+      ];
+      chips.forEach((chip,i)=>{
+        const o=others[i]; const a=RIM_ANG[i]*Math.PI/180, rad=R+24;
+        chip.style.left=(mx+rad*Math.cos(a))+'px'; chip.style.top=(my+rad*Math.sin(a))+'px';
+        chip.style.transform=`translate(-50%,-50%) ${WARP[i]} scale(.82)`;
+        chip.innerHTML=`<b style="color:${cssvar(o.var)}">${o.p}</b>${o.gist}`;
+      });
+    }
+  }
+  scene.addEventListener('pointermove',move);
+  scene.addEventListener('pointerenter',()=>scene.classList.add('show'));
+  scene.addEventListener('pointerleave',()=>{ scene.classList.remove('show'); });
+
+  function setMode(f){
+    fish=f;
+    lens.classList.toggle('fish',f); lens.classList.toggle('normal',!f);
+    scene.classList.toggle('fishmode',f);
+    document.getElementById('lens-fish').classList.toggle('on',f);
+    document.getElementById('lens-normal').classList.toggle('on',!f);
+    document.getElementById('c-hint').textContent = f
+      ? 'Fish-eye lens: the camp under the lens stays in sharp detail, and the other three readings curve in around the rim — focus and context at once.'
+      : 'Normal lens: you see one camp in detail, the rest goes dark — tunnel vision. Switch to fish-eye and the other readings curve back in around the rim.';
+  }
+  document.getElementById('lens-normal').addEventListener('click',()=>setMode(false));
+  document.getElementById('lens-fish').addEventListener('click',()=>setMode(true));
+  setMode(false);
+})();
+
+window.addEventListener('resize',()=>{ if(document.querySelector('.mode[data-mode="axes"]').classList.contains('on')) drawEdges();
+  if(document.querySelector('.mode[data-mode="graph"]').classList.contains('on')) drawGEdges(); });
+</script>
+</body>
+</html>
