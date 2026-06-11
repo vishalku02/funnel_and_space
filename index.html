@@ -21,6 +21,7 @@
     --line:#b9b3a6;          /* thin ink frame */
     --line-soft:#cdd3c4;
     --bloom:rgba(143,163,130,0.22);   /* soft halo behind focused things */
+    --c-beh:#7c6a8f; --c-cog:#4f7d86; --c-sit:#7d8a4a; --c-soc:#b06a44;   /* quadrant camp tints */
     --cold-bg:#dfe4e4;       /* the cold screen, drained */
     --cold-ink:#566;
     --spring:cubic-bezier(.34,1.42,.5,1);   /* overshoot for lens motion */
@@ -82,12 +83,12 @@
   }
   .glint b{ color:var(--bark); font-style:normal; font-weight:normal; }
 
-  /* the cold open — Maruko alone, drained */
+  /* the cold open — Irfan alone, drained */
   .cold{ background:var(--cold-bg); color:var(--cold-ink); border-radius:2px; padding:34px 36px; margin:1em 0; }
   .cold .kicker{ color:var(--cold-ink); opacity:.7; }
   .cold p{ font-family:'Courier New',monospace; font-size:15px; }
 
-  /* checklist (each camp's "what help would you give her?") */
+  /* checklist (each camp's "what help would you give him?") */
   .checklist{ list-style:none; margin:1em 0 0; }
   .checklist li{ margin:.5em 0; }
   .checklist label{ display:flex; gap:12px; align-items:flex-start; cursor:pointer; }
@@ -114,126 +115,111 @@
     line-height:1.6; padding:10px 4px; resize:vertical; min-height:3em; outline:none; }
   .ask textarea:focus{ border-bottom-color:var(--sage); }
 
-  /* ── the fish-eye mechanic: four around a center (tunnel-first, square ink) ── */
-  .fisheye{ width:min(100%,620px); margin:1.4em auto; }
-  .stage{ position:relative; width:100%; aspect-ratio:1/1; --fish:0; }
+  /* ── the fish-eye lens: one scene, drag the lens, normal ↔ fish-eye ── */
+  .lenstoggle{ display:flex; gap:8px; align-items:center; justify-content:center; margin-bottom:18px; font-family:system-ui,sans-serif; }
+  .lenstoggle .lab{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--glint); margin-right:4px; }
+  .seg{ font-family:system-ui,sans-serif; font-size:12.5px; color:var(--ink); background:rgba(255,255,255,.6);
+    border:1px solid var(--line); border-radius:3px; padding:8px 14px; cursor:pointer;
+    transition:border-color .2s, color .2s, background .2s; display:inline-flex; align-items:center; gap:8px; }
+  .seg:hover{ border-color:var(--sage); }
+  .seg.on{ border-color:var(--sage); color:var(--sage); background:rgba(95,115,85,.1); font-weight:bold; }
+  .seg svg{ display:block; }
+  .stagewrap{ display:flex; gap:30px; flex-wrap:wrap; align-items:flex-start; justify-content:center; }
+  .cscene{ position:relative; width:min(100%,500px); aspect-ratio:4/3; flex:0 0 auto; overflow:hidden;
+    border:1px solid var(--line); border-radius:4px; background:#dfe3d8; cursor:none; touch-action:none; }
+  .cscene img.base{ width:100%; height:100%; object-fit:cover; display:block; transition:filter .4s; }
+  .clens{ position:absolute; width:170px; height:170px; border-radius:50%; transform:translate(-50%,-50%);
+    pointer-events:none; opacity:0; z-index:5; transition:opacity .25s, box-shadow .45s var(--ease), border-color .35s; }
+  .cscene.show .clens{ opacity:1; }
+  .clens-clip{ position:absolute; inset:0; z-index:0; }
+  .clens-img{ position:absolute; inset:0; background-repeat:no-repeat; border-radius:50%; }
+  /* NORMAL: hard ring, the rest of the scene darkens — tunnel vision */
+  .clens.normal{ border:2px solid #fff; box-shadow:0 0 0 9999px rgba(28,32,26,.90), 0 10px 34px rgba(0,0,0,.35); }
+  /* FISH-EYE: warm convex glass — sage ring, bloom glow, soft-light sheen */
+  .clens.fish{ border:2px solid var(--sage);
+    box-shadow: inset 0 0 26px 7px rgba(60,42,22,.20), inset 0 0 0 1px rgba(255,248,236,.55),
+                0 0 50px 11px rgba(196,150,92,.38), 0 0 20px 4px var(--bloom), 0 8px 28px rgba(120,80,40,.18); }
+  .clens.fish::before{ content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none; z-index:1;
+    background:radial-gradient(circle at 50% 62%, rgba(214,150,84,.20), rgba(214,150,84,0) 70%); }
+  .clens.fish::after{ content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none; z-index:2;
+    background:radial-gradient(125% 100% at 50% 8%, rgba(255,250,242,.46), rgba(255,255,255,.06) 42%, rgba(60,44,30,.15) 100%);
+    mix-blend-mode:soft-light; }
+  .cscene.fishmode.show img.base{ filter:saturate(1.05) sepia(.05); }
+  /* peripheral gist chips — only in fish-eye, arced around the rim */
+  .rimchip{ position:absolute; z-index:6; pointer-events:none;
+    font-family:system-ui,sans-serif; font-size:10.5px; line-height:1.22; max-width:120px; text-align:center;
+    background:rgba(243,239,231,.94); border:1px solid var(--glint-rule); border-radius:10px; padding:4px 8px;
+    opacity:0; transition:opacity .3s; box-shadow:0 3px 12px rgba(0,0,0,.12); filter:blur(.25px); }
+  .cscene.fishmode.show .rimchip{ opacity:.95; }
+  .rimchip b{ display:block; font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--sage); }
+  /* small caption riding under the lens, naming the focused camp */
+  .clabel{ position:absolute; transform:translate(-50%,0); z-index:6; pointer-events:none; opacity:0;
+    font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.04em; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.6);
+    transition:opacity .25s; white-space:nowrap; }
+  .cscene.show .clabel{ opacity:1; }
+  .lenspanel{ flex:1; min-width:240px; max-width:360px; text-align:left; }
+  .lenspanel .pn{ font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--sage); min-height:1.2em; }
+  .lenspanel h3{ font-weight:normal; font-size:24px; margin:6px 0 10px; color:var(--ink); }
+  .lenspanel p{ font-size:15px; color:var(--bark); }
+  .lenspanel .lhint{ font-family:system-ui,sans-serif; font-size:12.5px; color:var(--glint); margin-top:14px; line-height:1.55; }
+  @media(max-width:760px){ .stagewrap{ flex-direction:column; align-items:center; } .lenspanel{ text-align:center; max-width:440px; } }
 
-  /* bloom halo — peripheral awareness brightening in as the aperture opens */
-  .halo{ position:absolute; inset:-6%; border-radius:50%; pointer-events:none; z-index:0;
-    background:radial-gradient(circle at 50% 50%, var(--bloom) 0%, transparent 62%);
-    opacity:calc(var(--fish) * .9); transform:scale(calc(.7 + var(--fish)*.3));
-    transition:opacity .7s var(--ease), transform .9s var(--ease); }
-  /* iris ring drawn at the aperture edge */
-  .iris-ring{ position:absolute; top:50%; left:50%; z-index:6; pointer-events:none; border-radius:50%;
-    width:calc(16% + var(--fish) * 134%); height:calc(16% + var(--fish) * 134%);
-    transform:translate(-50%,-50%); border:1px solid var(--sage); opacity:calc(var(--fish) * .35);
-    transition:width .8s var(--ease), height .8s var(--ease), opacity .8s var(--ease); }
-
-  .lcard{ background:rgba(255,255,255,.55); border:1px solid var(--line); border-radius:2px;
-    padding:13px 14px; text-align:center; will-change:transform,opacity,filter;
-    transition:opacity .7s var(--ease), transform .85s var(--spring), filter .6s ease, border-color .3s; }
-  .lcard .pn{ font-family:system-ui,sans-serif; font-size:10.5px; letter-spacing:.08em; color:var(--bark); }
-  .lcard .q{ font-style:italic; color:var(--bark); font-size:14px; margin:4px 0 9px; }
-  .lcard .slot{ width:100%; aspect-ratio:4/3; border:1px dashed var(--line-soft); border-radius:1px; overflow:hidden;
-    display:flex; align-items:center; justify-content:center; }
-  .lcard .slot img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .lcard .d{ font-size:12.5px; line-height:1.45; color:var(--ink); margin-top:9px; }
-
-  /* center — every transform comes from these props, so switch + settle compose cleanly */
-  .ctr{ position:absolute; top:50%; left:50%; width:46%; z-index:5;
-    border:1.5px solid var(--sage); background:#fff;
-    --tx:0px; --ty:0px; --sc:1; --clip:circle(140% at 50% 50%);
-    transform:translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(var(--sc));
-    clip-path:var(--clip);
-    transition:opacity .45s var(--ease), transform .6s var(--spring), clip-path .55s var(--ease); }
-  .ctr .pn{ color:var(--sage); font-weight:700; }
-
-  /* periphery wrapper carries the iris clip-path */
-  .periphery{ position:absolute; inset:0; z-index:2;
-    clip-path:circle(calc(8% + var(--fish) * 67%) at 50% 50%);
-    transition:clip-path .8s var(--ease); }
-  .lens{ position:absolute; width:30%; z-index:3; }
-  .lens .d{ display:none; }
-  /* three peripheral slots around the focused center: one top-center, two at the bottom */
-  .lens.pos-top{ top:0; left:50%; }
-  .lens.pos-bl{ bottom:0; left:0; }
-  .lens.pos-br{ bottom:0; right:0; }
-  .lens.hidden{ opacity:0 !important; pointer-events:none !important; }
-
-  /* convex glass sheen — a curved highlight that makes each peripheral card read as bowed */
-  .lens .slot::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:1px;
-    background:radial-gradient(125% 100% at 50% 8%, rgba(255,255,255,.42), rgba(255,255,255,.05) 42%, rgba(50,48,43,.10) 100%);
-    mix-blend-mode:soft-light; opacity:.9; }
-  .lens .slot{ position:relative; }
-
-  /* reverse-stagger: open top→bl→br, fold close br→bl→top */
-  .stage.fish .lens.pos-top{ transition-delay:0s; }
-  .stage.fish .lens.pos-bl{ transition-delay:.06s; }
-  .stage.fish .lens.pos-br{ transition-delay:.12s; }
-  .stage.tunnel .lens.pos-br{ transition-delay:0s; }
-  .stage.tunnel .lens.pos-bl{ transition-delay:.06s; }
-  .stage.tunnel .lens.pos-top{ transition-delay:.12s; }
-
-  /* tunnel: aperture closed, cards pulled small (top keeps its centering offset) */
-  .stage.tunnel .lens{ opacity:0; pointer-events:none; transform:scale(.86); }
-  .stage.tunnel .lens.pos-top{ transform:translateX(-50%) scale(.86); }
-  /* fish-eye on: depth-of-field + each card fans outward (convex warp) */
-  .stage.fish .lens{ cursor:pointer; opacity:.72; filter:blur(1.2px); }
-  .stage.fish .lens.near{ opacity:.9; filter:blur(.8px); } .stage.fish .lens.far{ opacity:.64; filter:blur(1.6px); }
-  .stage.fish .lens.pos-top{ transform:translateX(-50%) perspective(560px) rotateX(10deg) scale(.95); transform-origin:bottom center; }
-  .stage.fish .lens.pos-bl{ transform:perspective(560px) rotateY(-13deg) rotateX(10deg) scale(.95); transform-origin:top right; }
-  .stage.fish .lens.pos-br{ transform:perspective(560px) rotateY(13deg)  rotateX(10deg) scale(.95); transform-origin:top left; }
-
-  /* faint always-on corner arrow cue (no wording) */
-  .lens .cue{ position:absolute; top:6px; right:7px; opacity:0; transition:opacity .3s; color:var(--sage); pointer-events:none; z-index:2; }
-  .stage.fish .lens:not(.is-focus) .cue{ opacity:.55; }
-  .lens .cue svg{ display:block; }
-
-  /* hover/keyboard pulls a lens flat + sharp — previews the click (un-warps toward focus) */
-  .stage.fish .lens:hover,
-  .stage.fish .lens:focus-visible{
-    opacity:1 !important; border-color:var(--sage); filter:blur(0) !important;
-    z-index:7; transition-delay:0s !important; }
-  .stage.fish .lens.pos-bl:hover, .stage.fish .lens.pos-br:hover,
-  .stage.fish .lens.pos-bl:focus-visible, .stage.fish .lens.pos-br:focus-visible{
-    transform:perspective(560px) scale(1.05) !important; }
-  .stage.fish .lens.pos-top:hover,
-  .stage.fish .lens.pos-top:focus-visible{
-    transform:translateX(-50%) perspective(560px) scale(1.05) !important; }
-  .stage.fish .lens:hover .cue,
-  .stage.fish .lens:focus-visible .cue{ opacity:1; }
-
-  /* acquire control (single toggle, square ink) */
-  .acquire{ display:inline-flex; align-items:center; gap:11px; cursor:pointer; margin:18px auto 0;
-    background:rgba(255,255,255,.5); border:1px solid var(--line); border-radius:2px;
-    padding:11px 18px; font-family:system-ui,sans-serif; font-size:12px; letter-spacing:.08em; color:var(--ink);
-    transition:border-color .25s, background .25s; }
-  .acquire:hover{ border-color:var(--sage); }
-  .acquire.on{ border-color:var(--sage); color:var(--sage); background:rgba(95,115,85,.07); }
-  .acquire svg{ display:block; overflow:visible; }
-  /* reactive eye: lid blinks on toggle, pupil dilates when the lens is on */
-  .acquire .lid{ transform-box:fill-box; transform-origin:center; }
-  .acquire.blink .lid{ animation:blink .42s var(--ease); }
-  @keyframes blink{ 0%{transform:scaleY(1);} 45%{transform:scaleY(.08);} 100%{transform:scaleY(1);} }
-  .acquire .pupil{ transform-box:fill-box; transform-origin:center; transition:transform .4s var(--spring); }
-  .acquire.on .pupil{ transform:scale(1.3); }
-  .read{ text-align:center; font-size:14px; color:var(--bark); margin-top:12px; min-height:3em; line-height:1.5; }
-  .read .rec{ display:block; font-style:italic; color:var(--sage); font-size:12.5px; margin-top:6px; }
-
-  /* ── product sort (the break: discover the tilt) ── */
-  .sort{ width:min(100%,820px); margin:1.2em auto; }
-  .bins{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
-  .bin{ border:1px solid var(--line); border-radius:2px; min-height:120px; padding:10px; background:rgba(255,255,255,.3); }
-  .bin h5{ font-family:system-ui,sans-serif; font-size:10px; letter-spacing:.06em; text-transform:uppercase;
-    color:var(--bark); font-weight:normal; margin-bottom:8px; text-align:center; }
-  .bin .count{ display:block; text-align:center; font-size:11px; color:var(--glint); margin-top:6px; }
-  .chip{ display:inline-block; margin:3px; padding:6px 11px; border:1px solid var(--line); border-radius:2px;
-    background:#fff; font-size:13px; cursor:pointer; transition:border-color .2s, background .2s; }
-  .chip:hover{ border-color:var(--sage); }
-  .chip.placed{ background:var(--page); }
-  .tray{ text-align:center; margin-bottom:14px; min-height:40px; }
-  .sort-note{ font-size:13px; color:var(--glint); font-style:italic; text-align:center; min-height:1.4em; }
-  .sort-help{ font-family:system-ui,sans-serif; font-size:11px; color:var(--glint); text-align:center; margin-bottom:10px; letter-spacing:.03em; }
+  /* ── the quadrant (the break: discover the tilt) — drag products onto a 2D map ── */
+  .quadrant{ margin:1.2em auto 0; }
+  .quadrant .layout{ display:flex; gap:34px; flex-wrap:wrap; align-items:flex-start; justify-content:center; }
+  .quadrant .left{ flex:1 1 440px; min-width:300px; max-width:520px; }
+  .quadrant .right{ flex:1 1 230px; min-width:210px; max-width:300px; }
+  .quadrant .traylabel{ font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--glint); margin-bottom:10px; }
+  .quadrant .board{ position:relative; width:100%; touch-action:none; }
+  .quadrant .chip{ position:absolute; font-family:system-ui,sans-serif; font-size:13px; padding:7px 12px;
+    border:1px solid var(--line); border-radius:2px; background:#fff; cursor:grab; user-select:none;
+    -webkit-user-select:none; touch-action:none; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,.06);
+    transition:left .34s var(--spring), top .34s var(--spring), box-shadow .2s, border-color .2s, transform .1s; z-index:2; }
+  .quadrant .chip:hover{ border-color:var(--sage); }
+  .quadrant .chip.placed{ background:var(--page); }
+  .quadrant .chip.dragging{ cursor:grabbing; box-shadow:0 12px 28px rgba(0,0,0,.22); transform:scale(1.05);
+    z-index:999; transition:box-shadow .2s, border-color .2s, transform .1s; }
+  .quadrant .board.no-anim .chip{ transition:none; }
+  .quadrant .field{ position:absolute; left:0; border:1px solid var(--line); border-radius:6px; background:
+      linear-gradient(135deg, rgba(124,106,143,.06), transparent 46%),
+      linear-gradient(225deg, rgba(125,138,74,.06), transparent 46%),
+      linear-gradient( 45deg, rgba(79,125,134,.06), transparent 46%),
+      linear-gradient(315deg, rgba(176,106,68,.06), transparent 46%),
+      rgba(255,255,255,.3); z-index:1; transition:box-shadow .2s, border-color .2s; }
+  .quadrant .axis{ position:absolute; background:var(--glint-rule); }
+  .quadrant .axis.h{ left:0; right:0; top:50%; height:1px; } .quadrant .axis.v{ top:0; bottom:0; left:50%; width:1px; }
+  .quadrant .qlabel{ position:absolute; font-family:system-ui,sans-serif; font-size:12px; letter-spacing:.04em;
+    text-transform:uppercase; font-weight:bold; pointer-events:none; }
+  .quadrant .qlabel.tl{ top:12px; left:14px; color:var(--c-beh); }
+  .quadrant .qlabel.tr{ top:12px; right:14px; color:var(--c-sit); text-align:right; }
+  .quadrant .qlabel.bl{ bottom:12px; left:14px; color:var(--c-cog); }
+  .quadrant .qlabel.br{ bottom:12px; right:14px; color:var(--c-soc); text-align:right; }
+  .quadrant .axname{ position:absolute; font-family:system-ui,sans-serif; font-size:10.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--glint); pointer-events:none; background:var(--page); padding:0 5px; }
+  .quadrant .axname.top{ top:50%; left:50%; transform:translate(-50%,-50%) translateY(-1px); }
+  .quadrant .axname.lft{ top:50%; left:6px; transform:translateY(-50%); }
+  .quadrant .axname.rgt{ top:50%; right:6px; transform:translateY(-50%); }
+  .quadrant .field.drop-active{ border-color:var(--sage); box-shadow:0 0 0 3px var(--bloom); }
+  .quadrant .com{ position:absolute; width:18px; height:18px; border-radius:50%; transform:translate(-50%,-50%);
+    background:var(--fruit); border:2px solid #fff; box-shadow:0 3px 12px rgba(156,59,46,.4); z-index:5;
+    opacity:0; transition:left .5s var(--spring), top .5s var(--spring), opacity .4s; pointer-events:none; }
+  .quadrant .com.show{ opacity:1; }
+  .quadrant .com::after{ content:"the field leans here"; position:absolute; left:50%; top:-8px; transform:translate(-50%,-100%);
+    font-family:system-ui,sans-serif; font-size:10px; letter-spacing:.04em; color:var(--fruit); white-space:nowrap;
+    background:var(--page); padding:1px 6px; border-radius:8px; }
+  .quadrant .readout{ border:1px solid var(--glint-rule); border-radius:4px; padding:16px; background:rgba(255,255,255,.35); }
+  .quadrant .readout h3{ font-weight:normal; font-size:18px; color:var(--ink); margin-bottom:10px; }
+  .quadrant .barrow{ display:flex; align-items:center; gap:8px; margin:7px 0; font-family:system-ui,sans-serif; font-size:12px; }
+  .quadrant .barrow .nm{ width:88px; flex:0 0 auto; color:var(--bark); }
+  .quadrant .bar{ flex:1; height:9px; border-radius:5px; background:rgba(0,0,0,.06); overflow:hidden; }
+  .quadrant .bar i{ display:block; height:100%; width:0; border-radius:5px; transition:width .5s var(--ease); }
+  .quadrant .barrow .pct{ width:34px; text-align:right; color:var(--glint); }
+  .quadrant .qnote{ font-family:system-ui,sans-serif; font-size:11.5px; color:var(--glint); margin-top:14px; line-height:1.6; }
+  .quadrant .qhint{ font-family:system-ui,sans-serif; font-size:11.5px; color:var(--glint); margin-top:10px; line-height:1.6; }
+  .quadrant .reset{ font-family:system-ui,sans-serif; font-size:12px; color:var(--ink); background:rgba(255,255,255,.6);
+    border:1px solid var(--line); border-radius:3px; padding:6px 12px; cursor:pointer; margin-top:14px; }
+  .quadrant .reset:hover{ border-color:var(--sage); }
 
   /* tree closing bun */
   .tree-close{ text-align:center; }
@@ -248,6 +234,54 @@
     body{ font-size:18px; }
   }
   @media(prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} *{transition:none!important;} }
+
+  /* ── the cascade: one moment, pulled back four times (scrub the zoom) ── */
+  .cascade{ width:min(100%,620px); margin:1.4em auto 0; }
+  .cascade-stage{ position:relative; width:100%; aspect-ratio:4/3; }
+  .cascade-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    opacity:0; transition:opacity .55s var(--ease); }
+  .cascade-stage.instant .cascade-img{ transition:none; }
+  .cascade-card{ text-align:center; margin-top:1em; min-height:6em; }
+  .cc-camp{ font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--sage); }
+  .cc-q{ font-size:22px; font-style:italic; color:var(--ink); margin:.25em 0 .5em; }
+  .cc-creed{ font-size:16px; color:var(--bark); max-width:440px; margin:0 auto; line-height:1.55; }
+  .cascade-rings{ display:flex; align-items:center; justify-content:center; gap:13px; margin-top:.9em; }
+  .cascade-ring{ padding:0; border-radius:50%; cursor:pointer; border:1px solid var(--line);
+    background:transparent; transition:border-color .3s var(--ease), background .3s var(--ease), box-shadow .3s var(--ease); }
+  .cascade-ring.on{ border-color:var(--sage); background:var(--sage); box-shadow:0 0 0 4px var(--bloom); }
+  .cascade-scrub{ display:block; width:min(100%,360px); margin:1.1em auto 0; accent-color:var(--sage); cursor:ew-resize; }
+
+  /* ── the instinctive pick: your own default lens, then the others fill in ── */
+  .pick{ width:min(100%,640px); margin:0.4em auto 0; }
+  .pick-helps{ display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+  .pick-help{ text-align:left; font-family:Georgia,serif; font-size:16px; line-height:1.4; color:var(--ink);
+    background:rgba(255,255,255,.3); border:1px solid var(--line); border-radius:4px; padding:14px 16px; cursor:pointer;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);
+    transition:border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease), transform .12s var(--ease), opacity .3s; }
+  .pick-help:hover{ border-color:var(--sage); background:rgba(255,255,255,.8); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+  .pick-help.chosen{ border-color:var(--sage); border-width:2px; background:var(--bloom); }
+  .pick-help.dim{ opacity:.4; }
+  .pick-reveal{ margin-top:24px; opacity:0; max-height:0; overflow:hidden;
+    transition:opacity .5s var(--ease), max-height .5s var(--ease); }
+  .pick-reveal.on{ opacity:1; max-height:1400px; }
+  .pick-reveal h3{ font-weight:normal; font-size:23px; color:var(--ink); margin-bottom:8px; }
+  .pick-reveal .lead{ font-size:16px; color:var(--bark); margin-bottom:18px; max-width:520px; }
+  .pick-others{ display:grid; grid-template-columns:repeat(2,1fr); gap:11px; }
+  .ocard{ border:1px solid var(--line); border-radius:4px; padding:13px 15px; cursor:pointer;
+    background:rgba(255,255,255,.5); transition:border-color .2s; }
+  .ocard:hover{ border-color:var(--sage); }
+  .ocard.you{ border-color:var(--sage); background:rgba(95,115,85,.06); }
+  .ocard .on-nm{ font-family:system-ui,sans-serif; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--bark); }
+  .ocard.you .on-nm{ color:var(--sage); }
+  .ocard .on-q{ font-style:italic; color:var(--bark); font-size:14px; margin:5px 0; }
+  .ocard .on-help{ font-size:13.5px; color:var(--ink); opacity:0; max-height:0; overflow:hidden;
+    transition:opacity .35s var(--ease), max-height .35s var(--ease); }
+  .ocard.open .on-help{ opacity:1; max-height:220px; margin-top:4px; }
+  .pick-affirm{ font-size:15px; font-style:italic; color:var(--bark); margin-top:20px; max-width:520px; }
+  .pick-restart{ font-family:system-ui,sans-serif; font-size:12px; color:var(--ink); background:rgba(255,255,255,.6);
+    border:1px solid var(--line); border-radius:2px; padding:7px 14px; cursor:pointer; margin-top:18px; }
+  .pick-restart:hover{ border-color:var(--sage); }
+  @media(max-width:680px){ .pick-helps,.pick-others{ grid-template-columns:1fr; } }
 
   .art{ display:block; width:100%; height:auto; border-radius:2px; }
   .art.scene{ width:min(100%,460px); margin:0.6em 0; }
@@ -265,8 +299,8 @@
   <section class="beat" data-scene="cold-open">
     <div class="measure at-left">
       <p class="kicker">On building fish eyes for learning</p>
-      <h1>Everyone has their own view of education.</h1>
-      <p class="lede">What comes to your mind when you think about education?</p>
+      <h1>Everyone has their own view of education</h1>
+      <p class="lede">What comes to your mind when you think about the word "education"?</p>
       <div class="ask">
         <textarea data-capture="view0" rows="3" placeholder=""></textarea>
         <div class="save-row">
@@ -278,7 +312,8 @@
     <div class="step-in" style="width:100%;margin:1.4em 0;"><figure class="art-fig"><img class="art wide" src="images/cold-open.jpg" alt="A child alone at a desk, lit only by a screen."></figure></div>
   </section>
 
-  <!-- both can teach the same fact -->
+  <!-- positionality beat — the upfront "brilliant people / something feels off / Biesta" framing.
+       Commented out per Vishal: too abstract, too quick up front; go straight from the cold open into meeting the learner. Preserved for reference.
   <section class="beat" data-scene="positionality">
     <div class="measure at-right">
       <p>A lot of brilliant people are working on technologies for education. Building tutors that adapt to each student, designing products that drill skills to mastery, measuring what works and what doesn't.</p>
@@ -286,113 +321,142 @@
       <p class="glint"><b>Gert Biesta</b> calls this the "learnification" of education: when learning crowds out the rest of what it was for.</p>
     </div>
   </section>
+  -->
 
-  <!-- ════════ MEET MAYA — the child-sized version ════════ -->
+  <!-- ════════ MEET IRFAN — the child-sized version ════════ -->
   <section class="beat" data-scene="meet-maya">
     <div class="measure at-left">
-      <h2>Meet Maruko. She's ten.</h2>
-      <p>She likes being outside. She looks after things. The plants on the windowsill, the class guinea pig, her little brother. Lately she's been working through fractions. She gets the first few steps right almost every time, then reaches the same spot near the end and gets stuck.</p>
+      <h2>Meet Irfan, he's ten</h2>
+      <p>He likes being outside, looking after things, the plants on the windowsill, the class guinea pig, and his little brother.</p>
     </div>
-    <div class="step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/meet-maya.jpg" alt="A child kneels outdoors, gently planting a small sprout in the soil with their bare hands."></figure></div>
+    <div class="step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/meet-maya.jpg" alt="Irfan kneels outdoors, gently planting a small sprout, the seed of curiosity, in the soil with his bare hands."></figure></div>
   </section>
 
-  <!-- ════════ FOUR CAMPS — pass one: focus. each = passage -> checklist ════════ -->
-
-  <section class="beat" data-scene="camp-behaviorist">
+  <!-- ════════ THE STUCK MOMENT — the fraction problem, established wide ════════ -->
+  <section class="beat" data-scene="stuck-moment">
     <div class="measure at-left">
-      <h3>What can she do?</h3>
-      <p>That's where behaviorists look. Learning is a change you can see and measure. Skills drilled and reinforced until they hold on their own.</p>
-      <p class="dim"><b>As a behaviorist, what help would you give Maruko?</b></p>
-      <ul class="checklist" data-camp="behaviorist">
-        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">A Khan-Academy-style mastery platform that drills equivalent fractions until she's fluent</span></label></li>
-        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">Immediate right/wrong feedback on every step</span></label></li>
-        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">A clear mastery bar she can watch fill toward the goal</span></label></li>
-      </ul>
-      <p class="selectall-note" data-note="behaviorist"></p>
+      <p>Lately he's been working through fractions, and he gets the first few steps right almost every time, then reaches the same spot near the end and gets stuck.</p>
     </div>
-    <div class="at-right" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-behaviorist.jpg" alt="Tightened to the hand and the screen: tiles into ¾, checkmark dots."></figure></div>
+    <div class="step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="new_imgs/scene-master.png" alt="Irfan at his desk: the screen, the fraction tiles, an empty chair, the room around him."></figure></div>
   </section>
 
-  <section class="beat" data-scene="camp-cognitive">
-    <div class="measure at-right">
-      <h3>What does she understand?</h3>
-      <p>Cognitivists look under the behavior. Learning is what happens to the mind's machinery. Concepts, schemas, the way the pieces connect. They care about what one understands, not just what one can produce.</p>
-      <p class="dim"><b>If you were a cognitivist, what would you offer Maruko?</b></p>
+  <!-- ════════ THE CASCADE — one moment, pulled back four times ════════ -->
+  <section class="beat" data-scene="cascade">
+    <div class="measure at-center">
+      <h2>There are at least four ways to look at this one moment</h2>
+    </div>
+
+    <div class="cascade" id="cascade">
+      <div class="cascade-stage instant" id="cascadeStage">
+        <img class="cascade-img" data-level="0" src="new_imgs/scene-act.png" alt="Tight on his hand and the screen: ½ + ¼ marked wrong in red.">
+        <img class="cascade-img" data-level="1" src="new_imgs/scene-face.png" alt="Pulled back to his face, bent over the screen, thinking.">
+        <img class="cascade-img" data-level="2" src="new_imgs/scene-table.png" alt="The whole table: an empty chair beside him, fraction tiles untouched.">
+        <img class="cascade-img" data-level="3" src="new_imgs/scene-world.png" alt="The whole room around him: a board, a teacher's desk, a window.">
+      </div>
+
+      <div class="cascade-card" id="cascadeCard" aria-live="polite"></div>
+
+      <input class="cascade-scrub" id="cascadeScrub" type="range" min="0" max="3" step="0.01" value="0"
+             aria-label="scrub the camera out, from his hand to the whole room">
+      <div class="cascade-rings" id="cascadeRings" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ════════ INSTINCTIVE PICK — your own default lens, then the others fill in ════════ -->
+  <section class="beat" data-scene="instinctive-pick">
+    <div class="measure at-center">
+      <h2>In this moment, how would you help him?</h2>
+    </div>
+    <div class="pick" id="pick">
+      <div class="pick-helps" id="pickHelps"></div>
+      <div class="pick-reveal" id="pickReveal">
+        <h3 id="pickTitle"></h3>
+        <p class="lead" id="pickLead"></p>
+        <div class="pick-others" id="pickOthers"></div>
+        <p class="pick-affirm">None of the four is wrong, they just attend to different questions in the same moment.</p>
+        <button type="button" class="pick-restart" id="pickRestart">start over</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════ PRESERVED — the per-camp helps, un-rendered: seed for the instinctive pick + quadrant ════════ -->
+  <template id="camp-helps">
+    <div data-camp="behaviorist">
+      <p class="dim"><b>As a behaviorist, what help would you give Irfan?</b></p>
+      <ul class="checklist" data-camp="behaviorist">
+        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">A Khan-Academy-style mastery platform that drills equivalent fractions until he's fluent</span></label></li>
+        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">Immediate right/wrong feedback on every step</span></label></li>
+        <li><label><input type="checkbox" data-help="behaviorist"><span class="opt">A clear mastery bar he can watch fill toward the goal</span></label></li>
+      </ul>
+    </div>
+    <div data-camp="cognitive">
+      <p class="dim"><b>If you were a cognitivist, what would you offer Irfan?</b></p>
       <ul class="checklist" data-camp="cognitive">
-        <li><label><input type="checkbox" data-help="cognitive"><span class="opt">A tutor that diagnoses the misconception keeping her stuck at the same spot</span></label></li>
+        <li><label><input type="checkbox" data-help="cognitive"><span class="opt">A tutor that diagnoses the misconception keeping him stuck at the same spot</span></label></li>
         <li><label><input type="checkbox" data-help="cognitive"><span class="opt">A visual that shows 3/4 and 6/8 as the same slice of the same whole</span></label></li>
         <li><label><input type="checkbox" data-help="cognitive"><span class="opt">Problems sequenced to build the part-whole schema step by step</span></label></li>
       </ul>
-      <p class="selectall-note" data-note="cognitive"></p>
     </div>
-    <div class="at-left step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-cognitive.jpg" alt="Her head in profile; a light web of linked circles, ½ and ¼ joining toward ¾."></figure></div>
-  </section>
-
-  <section class="beat" data-scene="camp-situated">
-    <div class="measure at-left">
-      <h3>How does she participate?</h3>
-      <p>Situated and distributed cognition folks widen the frame. Learning isn't just in one's head. It is inherently social, rooted in real settings. Spread across the tools in one's hands, the people one works with, the activity one is part of.</p>
-      <p class="dim"><b>From a situated and distributed cognition perspective, what would you put in front of Maruko?</b></p>
+    <div data-camp="situated">
+      <p class="dim"><b>From a situated and distributed cognition perspective, what would you put in front of Irfan?</b></p>
       <ul class="checklist" data-camp="situated">
         <li><label><input type="checkbox" data-help="situated"><span class="opt">A partner to split fraction tiles with and argue ¾ out loud</span></label></li>
-        <li><label><input type="checkbox" data-help="situated"><span class="opt">Measuring cups and water — ¼ cup, ½ cup, three of each</span></label></li>
+        <li><label><input type="checkbox" data-help="situated"><span class="opt">Measuring cups and water, ¼ cup, ½ cup, three of each</span></label></li>
         <li><label><input type="checkbox" data-help="situated"><span class="opt">A small group cutting a paper "pizza" together and arguing over what's fair</span></label></li>
       </ul>
-      <p class="selectall-note" data-note="situated"></p>
     </div>
-    <div class="at-right" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-situated.jpg" alt="Two children at a table with fraction tiles between them, arguing it out."></figure></div>
-  </section>
-
-  <section class="beat" data-scene="camp-sociocultural">
-    <div class="measure at-right">
-      <h3>Whose knowledge counts?</h3>
-      <p>Sociocultural folks step outside the room entirely. Learning is cultural at its core, unfolding along many pathways, each one shaped by a community and its ways of knowing. It's never neutral—what constitutes knowledge, whose knowledge is represented, who one aspires to evolve with.</p>
-      <p class="dim"><b>What would a sociocultural lens ask of Maruko's classroom?</b></p>
+    <div data-camp="sociocultural">
+      <p class="dim"><b>What would a sociocultural lens ask of Irfan's classroom?</b></p>
       <ul class="checklist" data-camp="sociocultural">
-        <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">Fractions drawn from her world: how much guinea pig food is left in the bag, how to split a row of seedlings, how to share a snack fairly with her brother</span></label></li>
-        <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">A classroom where the way she'd explain it to her brother counts as a real explanation</span></label></li>
+        <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">Fractions drawn from his world: how much guinea pig food is left in the bag, how to split a row of seedlings, how to share a snack fairly with his brother</span></label></li>
+        <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">A classroom where the way he'd explain it to his brother counts as a real explanation</span></label></li>
         <li><label><input type="checkbox" data-help="sociocultural"><span class="opt">A say in which problems get called the "real" ones</span></label></li>
       </ul>
-      <p class="selectall-note" data-note="sociocultural"></p>
     </div>
-    <div class="at-left step-in" style="width:min(100%,460px);"><figure class="art-fig"><img class="art scene" src="images/camp-sociocultural.jpg" alt="The child at center; faint vignettes of kitchen, classroom, music, money on light threads."></figure></div>
-  </section>
+  </template>
 
   <!-- the lens turn + Wattenberger, where the fish-eye is introduced (fish quoted only here) -->
   <section class="beat" data-scene="lens-turn">
     <div class="measure at-center">
-      <p>Each of them is true. None is the wrong way to look. The problem is that each one, left alone, is a crop, and the other views fall out of frame.</p>
+      <p>Each of these perspectives is true. None is the wrong way to look. An issue arises, however, when a perspective is held alone: it becomes a crop of education, and the other perspectives fall out of frame.</p>
       <p>Amelia Wattenberger, writing about how we read, reaches for a camera bag.</p>
       <blockquote>"A fish eye lens doesn't ask us to choose between focus and context."</blockquote>
       <p>We are inspired by Amelia's point here: holding both the fine detail of a view and the big picture at once. The other views stay visible at the edges.</p>
-      <p>The honest part is that these four views do not always agree. One cannot stop choosing, but they can notice and situate to see where any one view sits inside the bigger picture. The fish-eye lens holds both at once.</p>
       <p class="cite">Amelia Wattenberger, "Fish eyes," wattenberger.com/thoughts/fish-eye (2024).</p>
+      <p>The honest part is that these four views do not always agree. One cannot stop choosing, but they can notice and situate to see where any one view sits inside the bigger picture.</p>
     </div>
   </section>
 
-  <!-- ════════ PASS TWO — the four held at once: the fish-eye mechanic ════════ -->
+  <!-- ════════ THE FISH-EYE — one scene, one lens, hold all four at once ════════ -->
   <section class="beat" data-scene="fisheye">
     <div class="measure at-center">
-      <h2>Holding them all at once.</h2>
+      <figure class="art-fig" style="width:min(100%,340px);margin:0 auto 1.4em;"><img class="art scene" src="new_imgs/irfan-lens.png" alt="Irfan holding a round fish-eye lens to his eye, the world curving in around it." onerror="this.closest('figure').style.display='none'"></figure>
+      <h2>Try the fish-eye lens yourself</h2>
     </div>
-    <div class="fisheye">
-      <div class="stage tunnel" id="stage">
-        <div class="halo"></div>
-        <div class="iris-ring"></div>
-        <div class="periphery" id="periphery"><!-- lenses injected by JS --></div>
-        <div class="lcard ctr" id="ctr"></div>
-      </div>
-      <div style="text-align:center;">
-        <button class="acquire" id="acquire">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3">
-            <g class="lid"><circle cx="10" cy="10" r="8"/><path d="M2 10 Q10 4 18 10 Q10 16 2 10Z"/></g>
-            <circle class="pupil" cx="10" cy="10" r="2.4" fill="currentColor" stroke="none"/>
-          </svg><span id="acquireLabel">put on the fish-eye lens</span>
-        </button>
-      </div>
-      <div class="read" id="read"></div>
+    <div class="lenstoggle">
+      <span class="lab">Lens</span>
+      <button class="seg on" id="lens-normal" type="button">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7.5" cy="7.5" r="5"/><path d="M11.2 11.2 L15.5 15.5"/></svg>
+        normal
+      </button>
+      <button class="seg" id="lens-fish" type="button">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="9" cy="9" r="7"/><path d="M2 9 Q9 4 16 9 Q9 14 2 9Z"/><circle cx="9" cy="9" r="1.8" fill="currentColor" stroke="none"/></svg>
+        fish-eye
+      </button>
     </div>
-    <blockquote style="margin:1.5em auto 0;max-width:560px;">What made us uncomfortable was never the focus itself. It was failing to acknowledge that the other views were there too.<span class="cite" style="display:block;margin-top:.7em;font-style:normal;">— Vishal and Yoyo</span></blockquote>
+    <div class="stagewrap">
+      <div class="cscene" id="cscene">
+        <img class="base" src="images/camp-situated.jpg" alt="Irfan and a partner at a table, fraction tiles between them, talking it out.">
+        <div class="clabel" id="clabel"></div>
+        <div class="clens normal" id="clens"><div class="clens-clip"><div class="clens-img" id="clens-img"></div></div></div>
+      </div>
+      <div class="lenspanel">
+        <div class="pn" id="c-pn"></div>
+        <h3 id="c-q">Move the lens over the scene.</h3>
+        <p id="c-d"></p>
+        <p class="lhint" id="c-hint">With the normal lens, you see one view in detail. Switch to the fish-eye and other questions curve around the rim.</p>
+      </div>
+    </div>
   </section>
 
   <!-- the load-bearing "keep the disagreement in frame / no neutral level" paragraph -->
@@ -402,19 +466,39 @@
     </div>
   </section>
 
-  <!-- ════════ THE BREAK — product sort: discover the tilt ════════ -->
-  <section class="beat" data-scene="product-sort">
+  <!-- ════════ THE BREAK — the quadrant: drag products onto the map, discover the tilt ════════ -->
+  <section class="beat" data-scene="quadrant">
     <div class="measure at-center">
       <h2>Where is the field spending its attention?</h2>
-      <p class="dim">Click each one, then click the lens you think it leans on.</p>
+      <p class="dim">Place each product where you think it's situated in the field.</p>
     </div>
-    <div class="sort" id="sort">
-      <div class="tray" id="tray"></div>
-      <div class="bins">
-        <div class="bin" data-bin="behaviorist"><h5>Behaviorist</h5><span class="count" data-count="behaviorist">0</span></div>
-        <div class="bin" data-bin="cognitive"><h5>Cognitive</h5><span class="count" data-count="cognitive">0</span></div>
-        <div class="bin" data-bin="situated"><h5>Situated</h5><span class="count" data-count="situated">0</span></div>
-        <div class="bin" data-bin="sociocultural"><h5>Sociocultural</h5><span class="count" data-count="sociocultural">0</span></div>
+    <div class="quadrant">
+      <div class="layout">
+        <div class="left">
+          <div class="traylabel">drag these onto the map ↓</div>
+          <div class="board" id="board">
+            <div class="field" id="field">
+              <div class="axis h"></div><div class="axis v"></div>
+              <div class="qlabel tl">Behaviorist</div>
+              <div class="qlabel tr">Situated</div>
+              <div class="qlabel bl">Cognitive</div>
+              <div class="qlabel br">Sociocultural</div>
+              <div class="axname top">observable ↑ · ↓ interpretive</div>
+              <div class="axname lft">individual</div>
+              <div class="axname rgt">collective</div>
+              <div class="com" id="com"></div>
+            </div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="readout">
+            <h3>Where the attention landed</h3>
+            <div id="bars"></div>
+            <p class="qnote" id="summary">Place a few products to see the lean.</p>
+            <button class="reset" id="reset" type="button">reset</button>
+          </div>
+          <p class="qhint">Two axes: <b>individual ↔ collective</b> (who's learning) and <b>observable ↔ interpretive</b> (what counts as learning). The four camps fall into the corners. The red dot is the centre of gravity of everything you placed. In other words, your perspective on the field's current tilt.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -422,7 +506,7 @@
   <!-- ════════ THE HYPOTHESIS PROMPT ════════ -->
   <section class="beat" data-scene="hypothesis">
     <div class="measure at-left">
-      <h2>What comes to mind now when you think about education?</h2>
+      <h2>What comes to mind now when you think about the word "education"?</h2>
       <div class="ask">
         <textarea data-capture="hypothesis" rows="3" placeholder="in your own words…"></textarea>
         <div class="save-row">
@@ -437,8 +521,9 @@
   <section class="beat" data-scene="tree-close">
     <div class="measure at-center tree-close">
       <div style="width:min(100%,680px);margin:0 auto 1em;"><figure class="art-fig"><img class="art wide" src="images/tree-close.png" alt="Children sitting at the roots of a grown apple tree, sheltered by it."></figure></div>
-      <p class="closing-line">And so the small seed of curiosity grew into something magnificent, when no single lens was watching.</p>
-      <p class="cite" style="margin-top:2em;">With thanks to Amelia Wattenberger, whose "Fish eyes" gave us the lens.</p>
+      <p class="closing-line">And so the small seed of curiosity grew into something magnificent, when no single lens was looking.</p>
+      <blockquote style="margin:1.8em auto 0;max-width:560px;">The focus was never what troubled us. It was a focus that mistook itself for a whole that was shared.<span class="cite" style="display:block;margin-top:.9em;text-align:right;font-style:italic;letter-spacing:.02em;">Vishal &amp; Yoyo</span></blockquote>
+      <p class="cite" style="margin-top:1.2em;">With thanks to Amelia Wattenberger, whose "Fish eyes" gave us the lens.</p>
     </div>
   </section>
 
@@ -446,7 +531,7 @@
 
 <script>
 (function(){
-  const session = { view0:'', help:{behaviorist:[],cognitive:[],situated:[],sociocultural:[]}, hypothesis:'', sort:{} };
+  const session = { view0:'', help:{behaviorist:[],cognitive:[],situated:[],sociocultural:[]}, pick:null, hypothesis:'', sort:{} };
   window.fisheyeSession = session;
 
   // ── anonymous clickstream tracking ──────────────────────────────────────
@@ -489,6 +574,7 @@
       final_answer: session.hypothesis,
       checkboxes: checkboxState,
       help_selected: session.help,
+      instinctive_pick: session.pick,
       card_sort_placements: session.sort,
       card_sort_order: sortOrder,
       total_events: eventSeq
@@ -540,129 +626,306 @@
     });
   });
 
-  // ── the fish-eye mechanic (tunnel-first, toggle, art in slots) ──
-  const L=[
-    {p:'BEHAVIORIST',   q:'What can she do?',          d:'The skill: she lands ¾, reinforced until it holds.', img:'images/product-1.jpg'},
-    {p:'COGNITIVE',     q:'What does she understand?', d:'The model knitting together underneath the answer.', img:'images/product-2.jpg'},
-    {p:'SITUATED',      q:'How does she participate?', d:'The partner, the tiles, the practice she is in.',    img:'images/product-3.jpg'},
-    {p:'SOCIOCULTURAL', q:'Whose knowledge counts?',   d:'The world the moment sits in: home, school, music.', img:'images/product-4.jpg'}
+  // ── the cascade: one moment pulled back four times (scrub the zoom) ──
+  const cascadeBeats=[
+    {camp:'BEHAVIORIST',   q:'What can he do?',          creed:'Watches what he does. Learning is the behavior you can see, drilled until it holds.'},
+    {camp:'COGNITIVE',     q:'What does he understand?', creed:'Looks for the idea underneath. Learning is the model forming in his head.'},
+    {camp:'SITUATED',      q:'How does he participate?', creed:'Looks at the table. Learning is something you do with people and tools, not alone in your head.'},
+    {camp:'SOCIOCULTURAL', q:'Whose knowledge counts?',  creed:'Looks at the whole world around him. Learning is cultural, and which knowledge counts is never neutral.'}
   ];
-  const corners=['tl','tr','br','bl'];
-  const POS=['top','bl','br'];   // the three peripheral slots (focused card sits in center)
-  // slide-in start offset, keyed by the clicked card's current peripheral slot
-  const OFFSET={ top:['0','-50%'], bl:['-50%','50%'], br:['50%','50%'] };
-  const stage=document.getElementById('stage');
-  const periphery=document.getElementById('periphery');
-  const ctr=document.getElementById('ctr');
-  const read=document.getElementById('read');
-  const acquire=document.getElementById('acquire');
-  const acquireLabel=document.getElementById('acquireLabel');
-  let fishOn=false, focus=0;   // start tunneled, behaviorist centered
-  const cueSVG='<span class="cue"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.1"><path d="M2 2 L5 5"/><path d="M5 2 L2 2 L2 5"/></svg></span>';
+  const cascadeImgs=[...document.querySelectorAll('.cascade-img')];
+  const cascadeStage=document.getElementById('cascadeStage');
+  const cascadeCard=document.getElementById('cascadeCard');
+  const cascadeRings=document.getElementById('cascadeRings');
+  const cascadeScrub=document.getElementById('cascadeScrub');
+  const deepestLevel=cascadeBeats.length-1;
+  let cascadeLevel=-1, cascadeDeepestSeen=0;
 
-  L.forEach((d,i)=>{
-    const n=document.createElement('div');
-    n.className='lcard lens'; n.dataset.i=i; n.tabIndex=-1;
-    n.innerHTML=cueSVG+`<div class="pn">${d.p}</div><div class="q">${d.q}</div>`+
-                `<div class="slot"><img src="${d.img}" alt=""></div>`;
-    n.addEventListener('click',()=>{ focusTo(i, n); });
-    n.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); focusTo(i, n); }});
-    periphery.appendChild(n);
+  cascadeBeats.forEach((beat,i)=>{
+    const dot=document.createElement('button');
+    dot.type='button'; dot.className='cascade-ring'; dot.dataset.level=i;
+    const diameter=9+i*3;   // each step a little wider — the camera pulling back
+    dot.style.width=diameter+'px'; dot.style.height=diameter+'px';
+    dot.setAttribute('aria-label', beat.camp.toLowerCase());
+    dot.addEventListener('click',()=>jumpToLevel(i));
+    cascadeRings.appendChild(dot);
   });
+  const cascadeDots=[...cascadeRings.children];
 
-  function paintCenter(){
-    const d=L[focus];
-    ctr.innerHTML=`<div class="pn">${d.p}</div><div class="q">${d.q}</div>`+
-                  `<div class="slot"><img src="${d.img}" alt=""></div>`+
-                  `<div class="d">${d.d}</div>`;
-  }
-  function paintLenses(){
-    stage.classList.toggle('tunnel',!fishOn);
-    stage.classList.toggle('fish',fishOn);
-    const others=[0,1,2,3].filter(i=>i!==focus);   // the three non-focused cards
-    stage.querySelectorAll('.lens').forEach(node=>{
-      const i=+node.dataset.i;
-      node.classList.remove('pos-top','pos-bl','pos-br','near','far','hidden');
-      if(i===focus){ node.classList.add('hidden'); node.dataset.pos=''; node.tabIndex=-1; return; }
-      const slot=POS[others.indexOf(i)];
-      node.classList.add('pos-'+slot, slot==='top'?'far':'near');
-      node.dataset.pos=slot;
-      node.tabIndex = fishOn ? 0 : -1;
+  function crossfade(value){
+    cascadeImgs.forEach((img,i)=>{
+      const nearness=1-Math.min(1,Math.abs(value-i));
+      img.style.opacity=nearness.toFixed(3);
     });
-    acquire.classList.toggle('on',fishOn);
-    acquireLabel.textContent = fishOn ? 'take off the fish-eye lens' : 'put on the fish-eye lens';
-    stage.style.setProperty('--fish', fishOn ? 1 : 0);   // drives iris, halo, ring
-    read.innerHTML = fishOn ? `<span class="rec">focused: ${L[focus].p.toLowerCase()} — the rest stay in frame</span>` : '';
   }
-  function ctrRest(){ ctr.style.setProperty('--tx','0px'); ctr.style.setProperty('--ty','0px');
-    ctr.style.setProperty('--sc','1'); ctr.style.setProperty('--clip','circle(140% at 50% 50%)'); ctr.style.opacity='1'; }
-  function render(){ paintCenter(); ctrRest(); paintLenses(); }
-
-  // slide-from-slot: the newly-focused card flies in from wherever it sat in the periphery
-  function focusTo(i, node){
-    if(!fishOn || i===focus) return;
-    const slot=(node && node.dataset.pos) || 'top';
-    focus=i;
-    track('fisheye_focus', { camp: L[i].p.toLowerCase(), label: L[i].q });
-    paintLenses();                                   // periphery reshuffles the instant you click
-    ctr.style.transition='opacity .12s ease';
-    ctr.style.opacity='0';                           // brief out
-    setTimeout(()=>{
-      paintCenter();
-      ctr.style.transition='none';                   // set start offset instantly
-      ctr.style.setProperty('--tx',OFFSET[slot][0]);
-      ctr.style.setProperty('--ty',OFFSET[slot][1]);
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        ctr.style.transition='opacity .45s var(--ease), transform .6s var(--spring)';
-        ctrRest();                                   // springs to center, fades in
-      }));
-    }, 120);
+  function paintCascadeCard(level){
+    const beat=cascadeBeats[level];
+    cascadeCard.innerHTML=`<div class="cc-camp">${beat.camp}</div>`+
+      `<div class="cc-q">${beat.q}</div><div class="cc-creed">${beat.creed}</div>`;
+    cascadeDots.forEach((d,i)=>d.classList.toggle('on',i===level));
   }
-  acquire.addEventListener('click',()=>{
-    fishOn=!fishOn;                                  // keep focus on the last-clicked card when closing
-    track('fisheye_toggle', { lens_on: fishOn, focus: L[focus].p.toLowerCase() });
-    // reactive eye + gentle center settle (overshoot via spring, no shape morph)
-    acquire.classList.remove('blink'); void acquire.offsetWidth; acquire.classList.add('blink');
-    acquire.classList.toggle('on',fishOn);
-    acquireLabel.textContent = fishOn ? 'take off the fish-eye lens' : 'put on the fish-eye lens';
-    ctr.style.transition='transform .6s var(--spring), opacity .3s ease';
-    ctr.style.setProperty('--sc', fishOn ? '1.06' : '.96'); ctr.style.opacity='.55';
-    setTimeout(()=>{ render(); }, 80);              // held breath, then aperture opens/closes
+  function settleOnLevel(level){
+    if(level===cascadeLevel) return;
+    cascadeLevel=level;
+    paintCascadeCard(level);
+    track('cascade_view', { level, camp: cascadeBeats[level].camp.toLowerCase() });
+    if(level>cascadeDeepestSeen) cascadeDeepestSeen=level;
+  }
+  function applyValue(value, instant){
+    cascadeStage.classList.toggle('instant', !!instant);
+    crossfade(value);
+    settleOnLevel(Math.round(value));
+  }
+  function jumpToLevel(level){
+    const target=Math.max(0,Math.min(deepestLevel,level));
+    cascadeScrub.value=target;
+    applyValue(target,false);
+  }
+  cascadeScrub.addEventListener('input',()=>applyValue(parseFloat(cascadeScrub.value),true));
+  cascadeScrub.addEventListener('change',()=>{
+    const snapped=Math.round(parseFloat(cascadeScrub.value));
+    cascadeScrub.value=snapped; applyValue(snapped,false);
   });
-  render();
+  applyValue(0,true);
 
-  // ── product sort (rough): tap a chip, tap a lens-bin to place it ──
-  const products=['Khanmigo / AI tutor','Anki flashcards','Duolingo streak','a Discord study group','a one-on-one tutor','a maker / robotics club','a lecture hall','Alpha School'];
-  const tray=document.getElementById('tray');
-  let selectedChip=null;
-  products.forEach(name=>{
-    const c=document.createElement('span'); c.className='chip'; c.textContent=name; c.dataset.name=name;
-    c.addEventListener('click',()=>{
-      if(selectedChip) selectedChip.style.borderColor='';
-      selectedChip=c; c.style.borderColor='var(--sage)';
-      track('sort_select', { product: c.dataset.name });
+  // ── the instinctive pick: your own default lens, then the others fill in ──
+  const PICK_CAMPS={
+    behaviorist:{name:'Behaviorist',q:'What can he do?',d:'Learning is observable behaviour: skills drilled and reinforced until they hold on their own.',would:'A drill-to-mastery app that practises equivalent fractions until he’s fluent'},
+    cognitive:{name:'Cognitive',q:'What does he understand?',d:'Learning is the mind’s machinery: the concepts and schema knitting together underneath the answer.',would:'A tutor that diagnoses the misconception keeping him stuck at the same spot'},
+    situated:{name:'Situated',q:'How does he participate?',d:'Learning is social and distributed: across the partner beside him, the tiles in his hands, the activity he’s in.',would:'A partner to split fraction tiles with and argue ¾ out loud'},
+    sociocultural:{name:'Sociocultural',q:'Whose knowledge counts?',d:'Learning is cultural: shaped by community and never neutral about whose knowledge counts.',would:'Fractions drawn from his world: guinea-pig food, sharing a snack fairly with his brother'}
+  };
+  const PICK_OPTIONS=[
+    {camp:'behaviorist',   text:'A drill-to-mastery app that practises equivalent fractions until he’s fluent'},
+    {camp:'cognitive',     text:'A tutor that diagnoses the misconception keeping him stuck at the same spot'},
+    {camp:'situated',      text:'A partner to split fraction tiles with and argue ¾ out loud'},
+    {camp:'sociocultural', text:'Fractions drawn from his world: guinea-pig food, sharing a snack fairly with his brother'},
+    {camp:'behaviorist',   text:'Immediate right/wrong feedback on every single step'},
+    {camp:'cognitive',     text:'A picture showing ¾ and 6/8 as the same slice of the same whole'},
+    {camp:'situated',      text:'Measuring cups and water, ¼ cup, ½ cup, three of each'},
+    {camp:'sociocultural', text:'A classroom where explaining it to his brother counts as a real explanation'}
+  ];
+  const pickHelps=document.getElementById('pickHelps');
+  const pickReveal=document.getElementById('pickReveal');
+  const pickOthers=document.getElementById('pickOthers');
+  const pickTitle=document.getElementById('pickTitle');
+  const pickLead=document.getElementById('pickLead');
+
+  PICK_OPTIONS.forEach(opt=>{
+    const button=document.createElement('button'); button.type='button'; button.className='pick-help';
+    button.textContent=opt.text; button.dataset.camp=opt.camp;
+    button.addEventListener('click',()=>choosePick(opt,button));
+    pickHelps.appendChild(button);
+  });
+
+  function choosePick(opt,btn){
+    pickHelps.querySelectorAll('.pick-help').forEach(h=>{
+      h.classList.toggle('chosen',h===btn);
+      if(h!==btn) h.classList.add('dim');
+      h.disabled=true;
     });
-    tray.appendChild(c);
-  });
-  const counts={behaviorist:0,cognitive:0,situated:0,sociocultural:0};
-  document.querySelectorAll('.bin').forEach(bin=>{
-    bin.addEventListener('click',()=>{
-      if(!selectedChip) return;
-      const camp=bin.dataset.bin;
-      const product=selectedChip.dataset.name;
-      selectedChip.classList.add('placed'); selectedChip.style.borderColor='';
-      session.sort[product]=camp;
-      sortOrder.push({ product, camp, placed_at_ms: millisSinceStart() });
-      track('sort_place', { product, camp });
-      bin.appendChild(selectedChip);
-      counts[camp]=[...bin.querySelectorAll('.chip')].length;
-      Object.keys(counts).forEach(k=>{
-        const el=document.querySelector(`[data-count="${k}"]`);
-        if(el) el.textContent=[...document.querySelector(`[data-bin="${k}"]`).querySelectorAll('.chip')].length;
+    const chosenCamp=PICK_CAMPS[opt.camp];
+    pickTitle.innerHTML=`You reached for the <b style="color:var(--sage)">${chosenCamp.name.toLowerCase()}</b> lens.`;
+    pickLead.textContent=`It asks: “${chosenCamp.q}” ${chosenCamp.d}`;
+    pickOthers.innerHTML='';
+    Object.keys(PICK_CAMPS).forEach(key=>{
+      const camp=PICK_CAMPS[key]; const isYou=key===opt.camp;
+      const card=document.createElement('div'); card.className='ocard'+(isYou?' you open':'');
+      card.innerHTML=`<div class="on-nm">${camp.name}</div><div class="on-q">${camp.q}</div>`+
+        `<div class="on-help">${isYou?opt.text:camp.would}</div>`;
+      card.addEventListener('click',()=>{
+        const wasOpen=card.classList.contains('open');
+        card.classList.toggle('open');
+        if(!wasOpen && !isYou) track('pick_reveal_open',{ camp:key });
       });
-      selectedChip=null;
+      pickOthers.appendChild(card);
     });
+    pickReveal.classList.add('on');
+    session.pick={ camp:opt.camp, help:opt.text, at_ms:millisSinceStart() };
+    track('pick_choose',{ camp:opt.camp, help:opt.text });
+    sendSnapshot(false);
+  }
+  document.getElementById('pickRestart').addEventListener('click',()=>{
+    pickReveal.classList.remove('on');
+    pickHelps.querySelectorAll('.pick-help').forEach(h=>{ h.classList.remove('chosen','dim'); h.disabled=false; });
+    track('pick_restart',{});
   });
+
+  // ── the fish-eye: one scene, drag the lens, normal ↔ fish-eye (focus + context) ──
+  const FISH_CAMPS=[
+    {key:'beh', p:'BEHAVIORIST',   q:'What can he do?',          d:'Learning is observable behaviour, drilled and reinforced until it holds.',              gist:'the worksheet, drill ¾ to mastery', look:[68,72]},
+    {key:'cog', p:'COGNITIVE',     q:'What does he understand?', d:'Learning is the mind’s machinery: the schema knitting together underneath.',           gist:'his head, the part-whole schema',   look:[42,38]},
+    {key:'sit', p:'SITUATED',      q:'How does he participate?', d:'Learning is social and distributed: across partners, tools, the activity itself.',     gist:'the table, partner, tiles, talk',   look:[58,55]},
+    {key:'soc', p:'SOCIOCULTURAL', q:'Whose knowledge counts?',   d:'Learning is cultural: shaped by community, never neutral about whose knowledge counts.', gist:'the room & beyond, home, power',     look:[30,68]}
+  ];
+  const fscene=document.getElementById('cscene'), flens=document.getElementById('clens');
+  const flensImg=document.getElementById('clens-img'), flabel=document.getElementById('clabel');
+  const fbase=fscene.querySelector('img.base');
+  const fpn=document.getElementById('c-pn'), fq=document.getElementById('c-q'), fd=document.getElementById('c-d'), fhint=document.getElementById('c-hint');
+  const FR=85, FZ=1.9;
+  let fishMode=false, lastFocusKey=null;
+  flensImg.style.backgroundImage=`url("${fbase.getAttribute('src')}")`;
+  const fchips=[0,1,2].map(()=>{ const c=document.createElement('div'); c.className='rimchip'; fscene.appendChild(c); return c; });
+  const FRIM_ANG=[-90,150,30];   // top, lower-left, lower-right
+
+  function fnearest(mx,my,W,H){
+    let best=FISH_CAMPS[0], bd=Infinity;
+    FISH_CAMPS.forEach(c=>{ const dx=c.look[0]/100*W-mx, dy=c.look[1]/100*H-my; const d=dx*dx+dy*dy;
+      if(d<bd){ bd=d; best=c; } });
+    return best;
+  }
+  function fmove(e){
+    const r=fscene.getBoundingClientRect(), W=r.width, H=r.height;
+    const mx=Math.max(0,Math.min(W,e.clientX-r.left)), my=Math.max(0,Math.min(H,e.clientY-r.top));
+    flens.style.left=mx+'px'; flens.style.top=my+'px';
+    flensImg.style.backgroundSize=`${W*FZ}px ${H*FZ}px`;
+    flensImg.style.backgroundPosition=`${FR-mx*FZ}px ${FR-my*FZ}px`;
+    const c=fnearest(mx,my,W,H);
+    flabel.textContent=c.p.toLowerCase(); flabel.style.left=mx+'px'; flabel.style.top=(my+FR+8)+'px';
+    fpn.textContent=c.p; fq.textContent=c.q; fd.textContent=c.d;
+    if(c.key!==lastFocusKey){ lastFocusKey=c.key; track('fisheye_focus',{ camp:c.key, mode: fishMode?'fish':'normal' }); }
+    if(fishMode){
+      const others=FISH_CAMPS.filter(x=>x.key!==c.key);
+      const WARP=[
+        'perspective(260px) rotateX(34deg)',
+        'perspective(260px) rotateY(40deg) rotate(-8deg)',
+        'perspective(260px) rotateY(-40deg) rotate(8deg)'
+      ];
+      fchips.forEach((chip,i)=>{
+        const o=others[i]; const a=FRIM_ANG[i]*Math.PI/180, rad=FR+24;
+        chip.style.left=(mx+rad*Math.cos(a))+'px'; chip.style.top=(my+rad*Math.sin(a))+'px';
+        chip.style.transform=`translate(-50%,-50%) ${WARP[i]} scale(.82)`;
+        chip.innerHTML=`<b>${o.p}</b>${o.gist}`;
+      });
+    }
+  }
+  fscene.addEventListener('pointermove',fmove);
+  fscene.addEventListener('pointerenter',()=>fscene.classList.add('show'));
+  fscene.addEventListener('pointerleave',()=>fscene.classList.remove('show'));
+
+  function setFishMode(on){
+    fishMode=on;
+    flens.classList.toggle('fish',on); flens.classList.toggle('normal',!on);
+    fscene.classList.toggle('fishmode',on);
+    document.getElementById('lens-fish').classList.toggle('on',on);
+    document.getElementById('lens-normal').classList.toggle('on',!on);
+    fhint.textContent = on
+      ? 'Fish-eye lens: the camp under the lens stays in sharp detail, and the other three readings curve in around the rim, focus and context at once.'
+      : 'Normal lens: you see one camp in detail, the rest goes dark, tunnel vision. Switch to the fish-eye and the other readings curve back in around the rim.';
+  }
+  document.getElementById('lens-normal').addEventListener('click',()=>{ setFishMode(false); track('fisheye_toggle',{ lens_on:false }); });
+  document.getElementById('lens-fish').addEventListener('click',()=>{ setFishMode(true); track('fisheye_toggle',{ lens_on:true }); });
+  setFishMode(false);
+
+  // ── the quadrant (the break): drag products onto a 2D map, discover the tilt ──
+  (function(){
+    const QPRODUCTS=['Khanmigo / AI tutor','Anki flashcards','Duolingo streak','a Discord study group','a one-on-one tutor','a maker / robotics club','a lecture hall','Alpha School'];
+    const QCAMPS={
+      beh:{name:'Behaviorist',  var:'--c-beh', q:[0,0]},   // TL: individual, observable
+      sit:{name:'Situated',     var:'--c-sit', q:[1,0]},   // TR: collective, observable
+      cog:{name:'Cognitive',    var:'--c-cog', q:[0,1]},   // BL: individual, interpretive
+      soc:{name:'Sociocultural',var:'--c-soc', q:[1,1]}    // BR: collective, interpretive
+    };
+    const cssvar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+    const board=document.getElementById('board'), field=document.getElementById('field');
+    const com=document.getElementById('com'), barsEl=document.getElementById('bars'), summary=document.getElementById('summary');
+    if(!board||!field) return;
+
+    const qitems=QPRODUCTS.map(name=>{
+      const el=document.createElement('div'); el.className='chip'; el.textContent=name;
+      board.appendChild(el);
+      const it={ name, el, homeX:0, homeY:0, placed:false, fx:0, fy:0 };
+      attachDrag(it); return it;
+    });
+
+    const barEls={};
+    Object.entries(QCAMPS).forEach(([k,c])=>{
+      const row=document.createElement('div'); row.className='barrow';
+      row.innerHTML=`<span class="nm">${c.name}</span><span class="bar"><i style="background:${cssvar(c.var)}"></i></span><span class="pct">0%</span>`;
+      barsEl.appendChild(row); barEls[k]={fill:row.querySelector('i'), pct:row.querySelector('.pct')};
+    });
+
+    function fieldBox(){ return { L:field.offsetLeft, T:field.offsetTop, W:field.offsetWidth, H:field.offsetHeight }; }
+    function chipCenter(el){ return { cx:el.offsetLeft+el.offsetWidth/2, cy:el.offsetTop+el.offsetHeight/2 }; }
+    function centerInField(el){ const{cx,cy}=chipCenter(el); const f=fieldBox();
+      return cx>=f.L && cx<=f.L+f.W && cy>=f.T && cy<=f.T+f.H; }
+    function nearestCamp(fx,fy){ const ix=fx<.5?0:1, iy=fy<.5?0:1;
+      return Object.entries(QCAMPS).find(([k,c])=>c.q[0]===ix && c.q[1]===iy); }
+
+    function layout(){
+      board.classList.add('no-anim');
+      const boardW=board.clientWidth; const gap=8; let x=0,y=0,rowH=0;
+      qitems.forEach(it=>{ const w=it.el.offsetWidth,h=it.el.offsetHeight;
+        if(x>0 && x+w>boardW){ x=0; y+=rowH+gap; rowH=0; }
+        it.homeX=x; it.homeY=y; rowH=Math.max(rowH,h); x+=w+gap; });
+      const fieldTop=y+rowH+18, side=boardW;
+      field.style.top=fieldTop+'px'; field.style.width=side+'px'; field.style.height=side+'px';
+      board.style.height=(fieldTop+side)+'px';
+      qitems.forEach(it=>{ it.placed ? positionPlaced(it) : positionHome(it); });
+      requestAnimationFrame(()=>board.classList.remove('no-anim'));
+    }
+    function positionHome(it){ it.el.style.left=it.homeX+'px'; it.el.style.top=it.homeY+'px'; }
+    function positionPlaced(it){ const f=fieldBox();
+      it.el.style.left=(f.L+it.fx*f.W-it.el.offsetWidth/2)+'px';
+      it.el.style.top =(f.T+it.fy*f.H-it.el.offsetHeight/2)+'px'; }
+
+    function attachDrag(it){
+      const el=it.el; let dragging=false, grabDX=0, grabDY=0, brect=null;
+      el.addEventListener('pointerdown',e=>{ e.preventDefault(); el.setPointerCapture(e.pointerId);
+        dragging=true; brect=board.getBoundingClientRect(); const r=el.getBoundingClientRect();
+        grabDX=e.clientX-r.left; grabDY=e.clientY-r.top; el.classList.add('dragging'); });
+      el.addEventListener('pointermove',e=>{ if(!dragging) return;
+        el.style.left=(e.clientX-brect.left-grabDX)+'px'; el.style.top=(e.clientY-brect.top-grabDY)+'px';
+        field.classList.toggle('drop-active', centerInField(el)); });
+      function end(e){ if(!dragging) return; dragging=false;
+        try{ el.releasePointerCapture(e.pointerId); }catch(_){}
+        el.classList.remove('dragging'); field.classList.remove('drop-active');
+        if(centerInField(el)) placeChip(it); else returnHome(it);
+        recompute(); }
+      el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+    }
+
+    function placeChip(it){
+      const f=fieldBox(); const{cx,cy}=chipCenter(it.el);
+      it.fx=clamp((cx-f.L)/f.W,.04,.96); it.fy=clamp((cy-f.T)/f.H,.05,.95); it.placed=true;
+      positionPlaced(it); it.el.classList.add('placed');
+      const camp=nearestCamp(it.fx,it.fy); it.el.style.borderColor=cssvar(camp[1].var);
+      session.sort[it.name]={ x:+it.fx.toFixed(4), y:+it.fy.toFixed(4), camp:camp[0] };
+      sortOrder.push({ product:it.name, x:+it.fx.toFixed(4), y:+it.fy.toFixed(4), camp:camp[0], placed_at_ms:millisSinceStart() });
+      track('quadrant_place',{ product:it.name, x:+it.fx.toFixed(3), y:+it.fy.toFixed(3), camp:camp[0] });
+    }
+    function returnHome(it){
+      const was=it.placed;
+      it.placed=false; it.el.classList.remove('placed'); it.el.style.borderColor=''; positionHome(it);
+      if(was){ delete session.sort[it.name]; track('quadrant_remove',{ product:it.name }); }
+    }
+
+    function recompute(){
+      const pts=qitems.filter(i=>i.placed).map(i=>({x:i.fx,y:i.fy}));
+      const w={beh:0,sit:0,cog:0,soc:0};
+      pts.forEach(p=>{ Object.entries(QCAMPS).forEach(([k,c])=>{ const d=Math.hypot(p.x-c.q[0],p.y-c.q[1]); w[k]+=Math.max(0,1-d); }); });
+      const tot=Object.values(w).reduce((a,b)=>a+b,0)||1;
+      Object.entries(w).forEach(([k,v])=>{ const pct=Math.round(v/tot*100); barEls[k].fill.style.width=pct+'%'; barEls[k].pct.textContent=pct+'%'; });
+      if(pts.length){
+        const mx=pts.reduce((a,p)=>a+p.x,0)/pts.length, my=pts.reduce((a,p)=>a+p.y,0)/pts.length;
+        com.classList.add('show'); com.style.left=(mx*100)+'%'; com.style.top=(my*100)+'%';
+        const lean=nearestCamp(mx,my); const sorted=Object.entries(w).sort((a,b)=>b[1]-a[1]);
+        summary.innerHTML=`With ${pts.length} placed, the centre of gravity sits in <b style="color:${cssvar(lean[1].var)}">${lean[1].name.toLowerCase()}</b> territory, `+
+          `heaviest on <b>${QCAMPS[sorted[0][0]].name.toLowerCase()}</b>, lightest on <b>${QCAMPS[sorted[3][0]].name.toLowerCase()}</b>.`;
+      } else { com.classList.remove('show'); summary.textContent='Place a few products to see the lean.'; }
+    }
+
+    document.getElementById('reset').addEventListener('click',()=>{
+      qitems.forEach(it=>{ it.placed=false; it.el.classList.remove('placed'); it.el.style.borderColor=''; positionHome(it); });
+      for(const k in session.sort) delete session.sort[k];
+      track('quadrant_reset',{}); recompute();
+    });
+
+    requestAnimationFrame(layout);
+    let rt=null; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(layout,120); });
+    recompute();
+  })();
 
   // ── capture opening view + hypothesis ──
   const v0=document.querySelector('[data-capture="view0"]');
