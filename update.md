@@ -14,6 +14,65 @@ a borrowed warm-up.
 
 ---
 
+## Status — shipped (2026-06-11)
+
+The redesign is **built and live in `index.html`** (committed + pushed to
+`origin/main`; hosting via GitHub Pages at
+`https://vishalku02.github.io/funnel_and_space/` once the repo is public).
+
+**The arc, end to end:**
+
+1. **Cold open** — "Everyone has their own view of education" + first capture
+   (what comes to mind when you think about the word "education"?).
+2. **Meet Irfan** (he/him) — likes being outside, looking after things; plants the
+   seed (of curiosity). *(positionality/Biesta beat commented out — too abstract up
+   front.)*
+3. **The stuck moment** — working through fractions, gets stuck; the wide
+   establishing shot (`new_imgs/scene-master.png`).
+4. **Cascade** — "There are at least four ways to look at this one moment": a scrub
+   slider panning through four nested crops (`scene-act/face/table/world`), four
+   bubbles as quiet indicators. Each beat = camp + question + one-line creed.
+5. **Instinctive pick** — "In this moment, how would you help?": 8 unlabeled helps
+   (prototype set, verbatim), pick one → reveals your default lens; the other
+   camps fill in as tap-to-open cards. Static affirm line: "None of the four is
+   wrong, they just attend to different questions in the same moment."
+6. **Lens turn** (re-level + Wattenberger) — "Each of these perspectives is
+   true… a perspective held alone becomes a crop of education." Quote, our take,
+   citation, then the bridge line.
+7. **Fish-eye** — "Try the fish-eye lens yourself": Irfan-at-the-peephole image,
+   then Mode 5 — drag the lens over `images/camp-situated.jpg`, normal (tunnel) vs
+   fish-eye (focus + the other three curving in at the rim).
+8. **Quadrant** — "Where is the field spending its attention?": drag products onto
+   a 2D map, centre-of-gravity dot reveals the tilt (the robust single-board
+   build).
+9. **Final capture** — "what comes to mind now…" (the first→final drift).
+10. **Close** — the tree, the closing line, our quote ("The focus was never what
+    troubled us. It was a focus that mistook itself for a whole that was shared."
+    — Vishal & Yoyo), then thanks to Amelia Wattenberger.
+
+**Voice / copy conventions now in force:**
+
+- Learner is **Irfan** (he/him). Education = the broad word, at the bookends;
+  learning = the four theories, in the body.
+- **No em-dashes** in rendered copy (commas/colons instead). Softer, flowing
+  sentences; declarative titles carry no trailing period.
+
+**Tracking: removed.** The clickstream plumbing (`/log`, `/snapshot`, session +
+snapshot bookkeeping, per-event `track()` calls) was stripped for static hosting —
+no failed requests. Save buttons still give "saved" feedback but transmit nothing.
+**Re-addable later** behind a backend endpoint (serverless function / Apps Script)
+without changing the interactions.
+
+**Standalone prototypes retired** (`camp-interactions`, `presentation-modes`,
+`quadrant-sort`, `fisheye-prototypes`). `quadrant-v2.html` kept locally as an
+untracked sandbox (not committed, not hosted).
+
+**Pending:** none blocking. Optional later: re-add data collection; revisit the
+title ("…for Learning" vs "…for Education"); the cognitive cascade beat leans
+hardest on its label if it ever reads flat.
+
+---
+
 ## Decided changes
 
 ### 1. The camera-move cascade (replaces the four-camp checklists)
