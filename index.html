@@ -531,101 +531,6 @@
 
 <script>
 (function(){
-  const session = { view0:'', help:{behaviorist:[],cognitive:[],situated:[],sociocultural:[]}, pick:null, hypothesis:'', sort:{} };
-  window.fisheyeSession = session;
-
-  // ── anonymous clickstream tracking ──────────────────────────────────────
-  const sessionId = (window.crypto && crypto.randomUUID)
-    ? crypto.randomUUID()
-    : 'sid-' + Date.now() + '-' + Math.floor(Math.random()*1e9);
-  const startedIso = new Date().toISOString();
-  const startPerf = performance.now();
-  let eventSeq = 0;
-  let previousEventPerf = startPerf;
-  const checkboxState = {};   // optionId -> {camp, label, checked, toggleCount, firstCheckedAtMs}
-  const sortOrder = [];       // chronological record of every chip placement
-
-  function millisSinceStart(){ return Math.round(performance.now() - startPerf); }
-
-  function track(type, detail){
-    const nowPerf = performance.now();
-    const event = Object.assign({
-      session_id: sessionId,
-      seq: eventSeq++,
-      type: type,
-      time_since_start_ms: Math.round(nowPerf - startPerf),
-      time_since_previous_ms: Math.round(nowPerf - previousEventPerf),
-      client_iso: new Date().toISOString()
-    }, detail || {});
-    previousEventPerf = nowPerf;
-    try {
-      fetch('/log', { method:'POST', keepalive:true,
-        headers:{'Content-Type':'application/json'}, body: JSON.stringify(event) });
-    } catch(e){ /* server not running: tracking is best-effort, page still works */ }
-  }
-
-  function buildSnapshot(){
-    return {
-      session_id: sessionId,
-      started_iso: startedIso,
-      last_update_iso: new Date().toISOString(),
-      duration_ms: millisSinceStart(),
-      first_answer: session.view0,
-      final_answer: session.hypothesis,
-      checkboxes: checkboxState,
-      help_selected: session.help,
-      instinctive_pick: session.pick,
-      card_sort_placements: session.sort,
-      card_sort_order: sortOrder,
-      total_events: eventSeq
-    };
-  }
-
-  function sendSnapshot(useBeacon){
-    const snapshot = buildSnapshot();
-    const body = JSON.stringify(snapshot);
-    if(useBeacon && navigator.sendBeacon){
-      navigator.sendBeacon('/snapshot', new Blob([body], {type:'application/json'}));
-      return;
-    }
-    try {
-      fetch('/snapshot', { method:'POST', keepalive:true,
-        headers:{'Content-Type':'application/json'}, body: body });
-    } catch(e){ /* best-effort */ }
-  }
-
-  track('session_start', { user_agent: navigator.userAgent, viewport_w: window.innerWidth, viewport_h: window.innerHeight });
-  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') sendSnapshot(true); });
-  window.addEventListener('pagehide', ()=>{ track('session_end', {}); sendSnapshot(true); });
-
-  // ── checklists: capture + the gentle "you chose them all" note ──
-  document.querySelectorAll('.checklist').forEach(list=>{
-    const camp = list.dataset.camp;
-    const note = document.querySelector(`[data-note="${camp}"]`);
-    const boxes = [...list.querySelectorAll('input')];
-    boxes.forEach((box, index)=>{
-      const optionId = camp + '-' + (index+1);
-      const label = box.closest('label').innerText.trim();
-      checkboxState[optionId] = { camp, label, checked:false, toggle_count:0, first_checked_at_ms:null };
-      box.addEventListener('change', ()=>{
-        const record = checkboxState[optionId];
-        record.checked = box.checked;
-        record.toggle_count += 1;
-        if(box.checked && record.first_checked_at_ms===null) record.first_checked_at_ms = millisSinceStart();
-        track('checkbox', { option_id: optionId, camp, label, checked: box.checked });
-      });
-    });
-    list.addEventListener('change',()=>{
-      const chosen = boxes.filter(b=>b.checked);
-      session.help[camp] = chosen.map(b=>b.closest('label').innerText.trim());
-      if(note){
-        if(chosen.length===boxes.length) note.textContent = 'we feel the same way.';
-        else if(chosen.length>0) note.textContent = '';
-        else note.textContent = '';
-      }
-    });
-  });
-
   // ── the cascade: one moment pulled back four times (scrub the zoom) ──
   const cascadeBeats=[
     {camp:'BEHAVIORIST',   q:'What can he do?',          creed:'Watches what he does. Learning is the behavior you can see, drilled until it holds.'},
@@ -639,7 +544,7 @@
   const cascadeRings=document.getElementById('cascadeRings');
   const cascadeScrub=document.getElementById('cascadeScrub');
   const deepestLevel=cascadeBeats.length-1;
-  let cascadeLevel=-1, cascadeDeepestSeen=0;
+  let cascadeLevel=-1;
 
   cascadeBeats.forEach((beat,i)=>{
     const dot=document.createElement('button');
@@ -668,8 +573,6 @@
     if(level===cascadeLevel) return;
     cascadeLevel=level;
     paintCascadeCard(level);
-    track('cascade_view', { level, camp: cascadeBeats[level].camp.toLowerCase() });
-    if(level>cascadeDeepestSeen) cascadeDeepestSeen=level;
   }
   function applyValue(value, instant){
     cascadeStage.classList.toggle('instant', !!instant);
@@ -733,22 +636,14 @@
       const card=document.createElement('div'); card.className='ocard'+(isYou?' you open':'');
       card.innerHTML=`<div class="on-nm">${camp.name}</div><div class="on-q">${camp.q}</div>`+
         `<div class="on-help">${isYou?opt.text:camp.would}</div>`;
-      card.addEventListener('click',()=>{
-        const wasOpen=card.classList.contains('open');
-        card.classList.toggle('open');
-        if(!wasOpen && !isYou) track('pick_reveal_open',{ camp:key });
-      });
+      card.addEventListener('click',()=>card.classList.toggle('open'));
       pickOthers.appendChild(card);
     });
     pickReveal.classList.add('on');
-    session.pick={ camp:opt.camp, help:opt.text, at_ms:millisSinceStart() };
-    track('pick_choose',{ camp:opt.camp, help:opt.text });
-    sendSnapshot(false);
   }
   document.getElementById('pickRestart').addEventListener('click',()=>{
     pickReveal.classList.remove('on');
     pickHelps.querySelectorAll('.pick-help').forEach(h=>{ h.classList.remove('chosen','dim'); h.disabled=false; });
-    track('pick_restart',{});
   });
 
   // ── the fish-eye: one scene, drag the lens, normal ↔ fish-eye (focus + context) ──
@@ -763,7 +658,7 @@
   const fbase=fscene.querySelector('img.base');
   const fpn=document.getElementById('c-pn'), fq=document.getElementById('c-q'), fd=document.getElementById('c-d'), fhint=document.getElementById('c-hint');
   const FR=85, FZ=1.9;
-  let fishMode=false, lastFocusKey=null;
+  let fishMode=false;
   flensImg.style.backgroundImage=`url("${fbase.getAttribute('src')}")`;
   const fchips=[0,1,2].map(()=>{ const c=document.createElement('div'); c.className='rimchip'; fscene.appendChild(c); return c; });
   const FRIM_ANG=[-90,150,30];   // top, lower-left, lower-right
@@ -783,7 +678,6 @@
     const c=fnearest(mx,my,W,H);
     flabel.textContent=c.p.toLowerCase(); flabel.style.left=mx+'px'; flabel.style.top=(my+FR+8)+'px';
     fpn.textContent=c.p; fq.textContent=c.q; fd.textContent=c.d;
-    if(c.key!==lastFocusKey){ lastFocusKey=c.key; track('fisheye_focus',{ camp:c.key, mode: fishMode?'fish':'normal' }); }
     if(fishMode){
       const others=FISH_CAMPS.filter(x=>x.key!==c.key);
       const WARP=[
@@ -813,8 +707,8 @@
       ? 'Fish-eye lens: the camp under the lens stays in sharp detail, and the other three readings curve in around the rim, focus and context at once.'
       : 'Normal lens: you see one camp in detail, the rest goes dark, tunnel vision. Switch to the fish-eye and the other readings curve back in around the rim.';
   }
-  document.getElementById('lens-normal').addEventListener('click',()=>{ setFishMode(false); track('fisheye_toggle',{ lens_on:false }); });
-  document.getElementById('lens-fish').addEventListener('click',()=>{ setFishMode(true); track('fisheye_toggle',{ lens_on:true }); });
+  document.getElementById('lens-normal').addEventListener('click',()=>setFishMode(false));
+  document.getElementById('lens-fish').addEventListener('click',()=>setFishMode(true));
   setFishMode(false);
 
   // ── the quadrant (the break): drag products onto a 2D map, discover the tilt ──
@@ -891,14 +785,9 @@
       it.fx=clamp((cx-f.L)/f.W,.04,.96); it.fy=clamp((cy-f.T)/f.H,.05,.95); it.placed=true;
       positionPlaced(it); it.el.classList.add('placed');
       const camp=nearestCamp(it.fx,it.fy); it.el.style.borderColor=cssvar(camp[1].var);
-      session.sort[it.name]={ x:+it.fx.toFixed(4), y:+it.fy.toFixed(4), camp:camp[0] };
-      sortOrder.push({ product:it.name, x:+it.fx.toFixed(4), y:+it.fy.toFixed(4), camp:camp[0], placed_at_ms:millisSinceStart() });
-      track('quadrant_place',{ product:it.name, x:+it.fx.toFixed(3), y:+it.fy.toFixed(3), camp:camp[0] });
     }
     function returnHome(it){
-      const was=it.placed;
       it.placed=false; it.el.classList.remove('placed'); it.el.style.borderColor=''; positionHome(it);
-      if(was){ delete session.sort[it.name]; track('quadrant_remove',{ product:it.name }); }
     }
 
     function recompute(){
@@ -918,8 +807,7 @@
 
     document.getElementById('reset').addEventListener('click',()=>{
       qitems.forEach(it=>{ it.placed=false; it.el.classList.remove('placed'); it.el.style.borderColor=''; positionHome(it); });
-      for(const k in session.sort) delete session.sort[k];
-      track('quadrant_reset',{}); recompute();
+      recompute();
     });
 
     requestAnimationFrame(layout);
@@ -932,47 +820,34 @@
   const v0btn=document.querySelector('[data-save="view0"]');
   const v0note=document.querySelector('[data-note="view0"]');
   if(v0){
-    v0.addEventListener('focus',()=>track('text_focus',{field:'first_answer'}),{once:true});
     v0.addEventListener('input',()=>{
-      session.view0=v0.value.trim();
-      if(v0btn){ v0btn.disabled = session.view0.length===0;
+      if(v0btn){ v0btn.disabled = v0.value.trim().length===0;
         v0btn.classList.remove('saved'); v0btn.textContent='save'; }
       if(v0note) v0note.classList.remove('show');
     });
   }
   if(v0btn){
     v0btn.addEventListener('click',()=>{
-      session.view0 = v0 ? v0.value.trim() : '';
       v0btn.classList.add('saved'); v0btn.textContent='saved';
       if(v0note) v0note.classList.add('show');
-      track('text_save',{ field:'first_answer', value:session.view0, length:session.view0.length });
-      sendSnapshot(false);
     });
   }
   const hyp=document.querySelector('[data-capture="hypothesis"]');
   const hypbtn=document.querySelector('[data-save="hypothesis"]');
   const hypnote=document.querySelector('[data-note="hypothesis"]');
   if(hyp){
-    hyp.addEventListener('focus',()=>track('text_focus',{field:'final_answer'}),{once:true});
     hyp.addEventListener('input',()=>{
-      session.hypothesis=hyp.value.trim();
-      if(hypbtn){ hypbtn.disabled = session.hypothesis.length===0;
+      if(hypbtn){ hypbtn.disabled = hyp.value.trim().length===0;
         hypbtn.classList.remove('saved'); hypbtn.textContent='save'; }
       if(hypnote) hypnote.classList.remove('show');
     });
   }
   if(hypbtn){
     hypbtn.addEventListener('click',()=>{
-      session.hypothesis = hyp ? hyp.value.trim() : '';
       hypbtn.classList.add('saved'); hypbtn.textContent='saved';
       if(hypnote) hypnote.classList.add('show');
-      track('text_save',{ field:'final_answer', value:session.hypothesis, length:session.hypothesis.length });
-      sendSnapshot(false);
     });
   }
-
-  // log on demand
-  window.logSession=()=>console.log(JSON.parse(JSON.stringify(buildSnapshot())));
 })();
 </script>
 </body>
